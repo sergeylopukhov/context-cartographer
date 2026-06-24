@@ -185,12 +185,12 @@ def main() -> int:
                 "Required",
                 "Summary",
                 "Other / my own option",
-                "Not sure / let Codex recommend",
+                "Not sure / let the agent recommend",
             ):
                 assert_true(forbidden not in html, f"English UI label leaked into HTML: {forbidden}")
             pass_line("Russian UI labels are present and English defaults are absent")
 
-            out_dir = temp_dir / ".codex-questionnaire"
+            out_dir = temp_dir / ".context-cartographer-questionnaire"
             save_result = server.save_answers(loaded, answers, out_dir, source_path=valid_path)
             assert_true((out_dir / ".gitignore").read_text(encoding="utf-8") == "*\n!.gitignore\n", ".gitignore was not created")
             assert_true((out_dir / "answers.json").exists(), "answers.json was not written")

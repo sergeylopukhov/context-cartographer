@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free local questionnaire server for Codex project planning."""
+"""Dependency-free local questionnaire server for project planning."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ class QuestionnaireError(Exception):
 DEFAULT_DEMO_QUESTIONNAIRE = {
     "title": "Демо-анкета проекта",
     "description": "Короткая встроенная анкета для проверки локальной формы.",
-    "project_context": "Только демонстрация. Для реальной работы передайте --input .codex-questionnaire/questions.json.",
+    "project_context": "Только демонстрация. Для реальной работы передайте --input .context-cartographer-questionnaire/questions.json.",
     "metadata": {"demo": True},
     "questions": [
         {
@@ -813,9 +813,9 @@ def positive_port(value: str) -> int:
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Запустить локальную кликабельную анкету Codex.")
+    parser = argparse.ArgumentParser(description="Запустить локальную кликабельную анкету.")
     parser.add_argument("--input", type=Path, help="Путь к questions.json. Если не указан, используется встроенное демо.")
-    parser.add_argument("--out-dir", type=Path, default=Path(".codex-questionnaire"), help="Папка для файлов ответов.")
+    parser.add_argument("--out-dir", type=Path, default=Path(".context-cartographer-questionnaire"), help="Папка для файлов ответов.")
     parser.add_argument("--port", type=positive_port, default=0, help="Порт на 127.0.0.1. Значение 0 выбирает свободный порт.")
     parser.add_argument("--validate-only", action="store_true", help="Проверить анкету и выйти без запуска сервера.")
     parser.add_argument("--print-demo", action="store_true", help="Вывести JSON встроенной демо-анкеты и выйти.")
@@ -1267,7 +1267,7 @@ HTML_TEMPLATE = """<!doctype html>
   <script id="questionnaire-data" type="application/json">__QUESTIONNAIRE_JSON__</script>
   <script>
     const questionnaire = JSON.parse(document.getElementById("questionnaire-data").textContent);
-    const storageKey = "codex-questionnaire:" + questionnaire.title + ":" + questionnaire.questions.map(q => q.id).join(",");
+    const storageKey = "context-cartographer-questionnaire:" + questionnaire.title + ":" + questionnaire.questions.map(q => q.id).join(",");
     const answers = {};
     const form = document.getElementById("form");
     const title = document.getElementById("title");

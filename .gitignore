@@ -1,4 +1,5 @@
 .DS_Store
+.context-cartographer-questionnaire/
 .codex-questionnaire/
 __pycache__/
 *.pyc

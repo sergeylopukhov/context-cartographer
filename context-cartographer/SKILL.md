@@ -1,6 +1,6 @@
 ---
 name: context-cartographer
-description: AGENTS.md, architecture.md, project docs, docs/, and documentation map setup, audit, cleanup, and maintenance for new and existing repositories. Use when Codex needs to create or update agent instructions, classify project type before choosing docs, split oversized architecture docs, route documentation ownership, or decide which project docs to read or update for UI apps, websites, SaaS, APIs, bots, automations, libraries, content projects, ecommerce, payments, data/ML, infra/devops, mobile apps, and internal tools.
+description: AGENTS.md, CLAUDE.md, Cursor rules, architecture.md, project docs, docs/, and documentation map setup, audit, cleanup, and maintenance for new and existing repositories. Use when an AI coding agent needs to create or update agent instructions, classify project type before choosing docs, split oversized architecture docs, route documentation ownership, or decide which project docs to read or update for UI apps, websites, SaaS, APIs, bots, automations, libraries, content projects, ecommerce, payments, data/ML, infra/devops, mobile apps, and internal tools.
 ---
 
 # Context Cartographer
@@ -29,8 +29,8 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 
 ## Mandatory Decision Gates
 
-- After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
-- The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let Codex decide.
+- After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
+- The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let the agent decide.
 - Continue without this question only when the user already clearly said to decide autonomously, migrate everything, or skip questions.
 - If more than two questions are needed, use the bundled questionnaire instead of asking a numbered list in chat; otherwise ask the one or two questions directly.
 
@@ -46,11 +46,11 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 
 Use the bundled questionnaire instead of long numbered chat questions when profile, scope, language, ownership, or overwrite decisions require more than two answers.
 
-1. Create `.codex-questionnaire/questions.json` in the target project using `references/question_schema.md`.
-2. Back up existing `.codex-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.
-3. Run `python3 <this-skill>/scripts/questionnaire_server.py --input .codex-questionnaire/questions.json --out-dir .codex-questionnaire --port 0`.
+1. Create `.context-cartographer-questionnaire/questions.json` in the target project using `references/question_schema.md`.
+2. Back up existing `.context-cartographer-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.
+3. Run `python3 <this-skill>/scripts/questionnaire_server.py --input .context-cartographer-questionnaire/questions.json --out-dir .context-cartographer-questionnaire --port 0`.
 4. Give the user the printed `http://127.0.0.1:<port>/` URL and ask them to save the form and say `готово` or equivalent.
-5. After completion, read `.codex-questionnaire/answers.json` and `.codex-questionnaire/answers.md`, summarize decisions, then continue.
+5. After completion, read `.context-cartographer-questionnaire/answers.json` and `.context-cartographer-questionnaire/answers.md`, summarize decisions, then continue.
 6. If local Python or browser access is unavailable, ask up to three concise chat questions instead.
 
 Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, include "Other/custom" and "Not sure/recommend" options when useful, and never ask for secrets or private keys.
@@ -72,12 +72,12 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 1. List files with `rg --files` and targeted reads.
 2. Detect existing `AGENTS.md`, `docs/`, README files, architecture docs, product/design/deployment docs, and content docs.
 3. Identify stale references, duplicated facts, oversized docs, missing owners, and files outside the expected documentation structure.
-4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let Codex decide.
-5. If the user chooses "let Codex decide", read existing docs as project context, preserve durable facts, resolve conflicts with `TODO: clarify` or questions, and migrate docs into this skill's minimal-core/profile-based structure.
+4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let the agent decide.
+5. If the user chooses "let the agent decide", read existing docs as project context, preserve durable facts, resolve conflicts with `TODO: clarify` or questions, and migrate docs into this skill's minimal-core/profile-based structure.
 6. If the project has or is getting a docs system, ensure `docs/code_rules.md` exists or propose adding it.
 7. Show a proposed docs map before changing existing docs: list current docs, topic owners, and the exact planned create/update/delete actions.
 8. Ensure project-memory docs are ignored by VCS; if `docs/` is public/user-facing, ask before adding broad ignore patterns.
-9. Ask before deleting, merging, renaming, or heavily rewriting docs unless the user already delegated docs cleanup decisions to Codex.
+9. Ask before deleting, merging, renaming, or heavily rewriting docs unless the user already delegated docs cleanup decisions to the agent.
 10. Apply approved edits narrowly.
 11. Check changed links and old filenames with `rg`.
 

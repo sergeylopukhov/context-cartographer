@@ -7,7 +7,7 @@ Use this checklist before changing existing project documentation.
 - Run `rg --files` from the project root.
 - Identify the project profile: UI app/site/SaaS, backend/API, bot/automation, library/package, content/SEO, ecommerce/payments, data/ML, infra/devops, mobile, internal tool, or mixed project.
 - Identify the stack from package files, framework files, config files, and folder names.
-- Find existing project instructions: `AGENTS.md`, `.cursorrules`, `CLAUDE.md`, README files, or docs indexes.
+- Find existing project instructions: `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, README files, or docs indexes.
 - Find docs folders and Markdown files outside docs.
 - Find VCS ignore files such as `.gitignore`, `.git/info/exclude`, or tool-specific ignore files.
 - Ignore vendor, dependency, cache, build, and generated folders unless the user asks about them.
@@ -43,7 +43,7 @@ Classify each durable Markdown file:
 - Are architecture facts split by topic?
 - Are product, design, deployment, and security facts in their owner files?
 - Does the docs set match the project profile?
-- If docs already exist, has the user chosen whether to keep, audit only, migrate after approval, or let Codex decide?
+- If docs already exist, has the user chosen whether to keep, audit only, migrate after approval, or let the agent decide?
 - Are UI, design, and product docs absent for non-UI/non-product projects unless there is clear evidence they are needed?
 - Are there duplicate facts in multiple docs?
 - Do `AGENTS.md`, `README*`, `docs/architecture.md`, and profile docs contradict each other?
@@ -56,7 +56,7 @@ Classify each durable Markdown file:
 
 Ask before acting when:
 
-- existing docs, README files, or project instruction files are present and the prompt did not explicitly delegate cleanup decisions; first ask whether to keep as-is, audit only, migrate after approval, or let Codex decide;
+- existing docs, README files, or project instruction files are present and the prompt did not explicitly delegate cleanup decisions; first ask whether to keep as-is, audit only, migrate after approval, or let the agent decide;
 - the goal is unclear;
 - there are multiple plausible owner files;
 - no suitable owner file exists;
@@ -77,7 +77,7 @@ After approved edits:
 - Run `rg` for old filenames.
 - Check links from `docs/architecture.md`.
 - Check that every newly created docs file is linked from the map.
-- If the user delegated docs cleanup to Codex, check that durable facts from existing docs were either migrated, preserved in place, or marked `TODO: clarify` when conflicting.
+- If the user delegated docs cleanup to the agent, check that durable facts from existing docs were either migrated, preserved in place, or marked `TODO: clarify` when conflicting.
 - Check that project-memory docs are covered by `.gitignore` or the repo's VCS ignore file unless the user explicitly wants them tracked.
 - Check that no root Markdown docs remain except allowed files such as `AGENTS.md`, unless the project intentionally keeps content files elsewhere.
 - Report docs-only changes as docs-only; do not run app tests unless code or behavior changed.

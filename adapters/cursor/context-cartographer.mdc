@@ -1,0 +1,16 @@
+---
+description: "Use context-cartographer for AGENTS.md, architecture.md, CLAUDE.md, Cursor rules, project docs, docs/, documentation maps, local-only agent memory, documentation setup, audit, cleanup, and migration."
+globs: []
+alwaysApply: false
+---
+
+# Context Cartographer Cursor Rule
+
+Use this rule as a thin adapter. Prefer the installed skill at `.cursor/skills/context-cartographer/SKILL.md` when available.
+
+- For project documentation setup, audit, cleanup, `AGENTS.md`, `architecture.md`, docs maps, or local agent-memory docs, use the `context-cartographer` skill workflow.
+- If the skill is not installed, ask the user to install it into `.cursor/skills/context-cartographer/` before doing broad documentation migration.
+- Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
+- Before changing existing docs, scan read-only and show the proposed docs map: current docs, topic owners, and planned create/update/delete actions.
+- Before code or code-adjacent edits, read `docs/code_rules.md` when it exists.
+- Keep project-memory docs local-only unless the user explicitly asks to track, publish, upload, or deploy them.

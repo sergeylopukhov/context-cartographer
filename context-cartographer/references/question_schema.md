@@ -1,14 +1,14 @@
 # Questionnaire JSON Schema
 
-This skill uses a stable JSON object saved as `.codex-questionnaire/questions.json`.
+This skill uses a stable JSON object saved as `.context-cartographer-questionnaire/questions.json`.
 
 ## Top-Level Fields
 
 - `title` string, required: Short questionnaire title.
 - `description` string, optional: One-paragraph explanation shown at the top of the form.
-- `project_context` string or object, optional: Brief context Codex used to build the questionnaire.
+- `project_context` string or object, optional: Brief context the agent used to build the questionnaire.
 - `questions` array, required: One or more question objects.
-- `metadata` object, optional: Non-user-facing data for Codex.
+- `metadata` object, optional: Non-user-facing data for the agent.
 
 ## Question Fields
 
@@ -28,7 +28,7 @@ This skill uses a stable JSON object saved as `.codex-questionnaire/questions.js
 - `required` boolean, optional: Whether the user must answer before saving.
 - `default` string, number, or array, optional: Initial value.
 - `show_if` object, optional: Simple dependency that controls whether the question is visible.
-- `metadata` object, optional: Non-user-facing data for Codex.
+- `metadata` object, optional: Non-user-facing data for the agent.
 
 ## Option Fields
 
@@ -57,7 +57,7 @@ Object option fields:
 - `label` string, optional: User-facing label. Defaults to `value`.
 - `help_text` string, optional: Short explanation.
 - `recommended` boolean, optional: Marks this option as recommended if the question-level `recommended` field is omitted.
-- `metadata` object, optional: Non-user-facing data for Codex.
+- `metadata` object, optional: Non-user-facing data for the agent.
 
 ## allow_other Answer Behavior
 
@@ -219,10 +219,10 @@ Only one operator should be used per `show_if` object.
 ```json
 {
   "title": "Landing Page Project Brief",
-  "description": "Choose the practical direction for the landing page so Codex can produce a focused implementation plan.",
+  "description": "Choose the practical direction for the landing page so the agent can produce a focused implementation plan.",
   "project_context": "The user wants a conversion-focused landing page for a new SaaS product.",
   "metadata": {
-    "created_by": "codex",
+    "created_by": "agent",
     "purpose": "requirements"
   },
   "questions": [
@@ -324,7 +324,7 @@ Only one operator should be used per `show_if` object.
     },
     {
       "id": "notes",
-      "title": "Anything else Codex should account for?",
+      "title": "Anything else the agent should account for?",
       "type": "textarea",
       "required": false
     }

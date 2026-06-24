@@ -6,8 +6,8 @@ Use this file when documentation is too large, duplicated, stale, or mixed by to
 
 Before moving or creating docs, identify the project profile. Do not force every project into a UI/SaaS documentation shape.
 
-- When existing documentation is present and the prompt did not explicitly delegate cleanup decisions, stop after the read-only scan and ask whether to keep it as-is, audit only, migrate after approval, or let Codex decide.
-- If the user delegates the decision to Codex, use existing docs as project context and migrate durable facts into the minimal-core/profile-based structure from this skill.
+- When existing documentation is present and the prompt did not explicitly delegate cleanup decisions, stop after the read-only scan and ask whether to keep it as-is, audit only, migrate after approval, or let the agent decide.
+- If the user delegates the decision to the agent, use existing docs as project context and migrate durable facts into the minimal-core/profile-based structure from this skill.
 - For non-UI projects, do not create `docs/architecture-frontend.md` or `docs/DESIGN.md` unless a real UI/admin/mobile surface exists.
 - For libraries, CLIs, bots, automations, APIs, data/ML, and infra repos, keep docs focused on runtime, interfaces, operations, integrations, and risks.
 - Keep public repo docs such as `README.md`, `LICENSE`, `CONTRIBUTING.md`, changelogs, examples, and user-facing content in their conventional locations unless the user explicitly asks to move them.
@@ -22,7 +22,7 @@ Split a large documentation file when it mixes stable topics such as architectur
 Process:
 
 1. Read headings and link references first.
-2. Confirm the user-approved strategy for existing docs, or proceed only if the user delegated docs cleanup decisions to Codex.
+2. Confirm the user-approved strategy for existing docs, or proceed only if the user delegated docs cleanup decisions to the agent.
 3. Create a topic map before moving content.
 4. Move each fact to one owner file only.
 5. Replace the old large file with a concise index if it remains useful.

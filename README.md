@@ -1,6 +1,6 @@
 # Context Cartographer
 
-`context-cartographer` is a Codex skill for creating and maintaining lean project documentation that helps AI agents understand a repository without rereading the whole codebase every time.
+`context-cartographer` is an Agent Skill for Codex, Claude Code, and Cursor. It creates and maintains lean project documentation that helps AI coding agents understand a repository without rereading the whole codebase every time.
 
 It builds a small local documentation system for a project: a short `AGENTS.md`, a documentation map, code-editing rules, and only the profile-specific docs the project actually needs.
 
@@ -12,7 +12,7 @@ It builds a small local documentation system for a project: a short `AGENTS.md`,
 - Asks what to do with existing docs before rewriting, moving, or deleting them.
 - Uses existing docs as project context when the user delegates cleanup decisions.
 - Keeps agent documentation local-only by default and adds it to `.gitignore`.
-- Makes `AGENTS.md` distinguish discussion from actual edit requests, so Codex does not start changing files just because the user is thinking out loud.
+- Makes agent instruction files distinguish discussion from actual edit requests, so the agent does not start changing files just because the user is thinking out loud.
 - Updates docs later only for durable changes, not routine task notes.
 
 ## Why It Exists
@@ -27,7 +27,7 @@ This skill creates a compact map of the project:
 - what rules apply before code edits;
 - which docs should stay private and local.
 
-The result is less repeated exploration, fewer accidental edits, and better continuity between Codex sessions.
+The result is less repeated exploration, fewer accidental edits, and better continuity between agent sessions.
 
 ## Token Savings
 
@@ -73,20 +73,20 @@ If a project already has documentation, the skill should stop after the initial 
 - keep as-is;
 - audit only;
 - migrate after approval;
-- let Codex decide.
+- let the agent decide.
 
-If the user chooses "let Codex decide", the skill uses existing docs as project context, preserves durable facts, marks conflicts as `TODO: clarify`, and migrates the docs into the profile-based structure.
+If the user chooses "let the agent decide", the skill uses existing docs as project context, preserves durable facts, marks conflicts as `TODO: clarify`, and migrates the docs into the profile-based structure.
 
 ## Questions And Questionnaire
 
 The skill has a bundled local questionnaire server. It does not depend on another installed questionnaire skill.
 
-If Codex needs one or two answers, it can ask directly in chat. If it needs more than two questions, it should create a temporary `.codex-questionnaire/` folder in the user's project, run the bundled `scripts/questionnaire_server.py`, and give the user a local `http://127.0.0.1:<port>/` form.
+If the agent needs one or two answers, it can ask directly in chat. If it needs more than two questions, it should create a temporary `.context-cartographer-questionnaire/` folder in the user's project, run the bundled `scripts/questionnaire_server.py`, and give the user a local `http://127.0.0.1:<port>/` form.
 
 The questionnaire output is saved as:
 
-- `.codex-questionnaire/answers.json`
-- `.codex-questionnaire/answers.md`
+- `.context-cartographer-questionnaire/answers.json`
+- `.context-cartographer-questionnaire/answers.md`
 
 The folder is local working data and is ignored by default.
 
@@ -100,7 +100,9 @@ If a project already uses `docs/` as public documentation, the skill must not ig
 
 ## Install
 
-Use the Codex skill installer:
+The canonical package is the `context-cartographer/` folder. Use the same folder for Codex, Claude Code, and Cursor.
+
+### Codex
 
 ```bash
 python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-github.py \
@@ -110,24 +112,67 @@ python3 ~/.codex/skills/.system/skill-installer/scripts/install-skill-from-githu
 
 Then restart Codex so the new skill is loaded.
 
+### Claude Code
+
+Personal install:
+
+```bash
+git clone https://github.com/sergeylopukhov/context-cartographer.git /tmp/context-cartographer
+mkdir -p ~/.claude/skills
+rsync -a /tmp/context-cartographer/context-cartographer/ ~/.claude/skills/context-cartographer/
+```
+
+Project install:
+
+```bash
+mkdir -p .claude/skills
+rsync -a context-cartographer/ .claude/skills/context-cartographer/
+```
+
+Optional persistent pointer:
+
+```bash
+cp adapters/claude/CLAUDE.md ./CLAUDE.md
+```
+
+Use `/context-cartographer` or ask Claude to use the `context-cartographer` skill.
+
+### Cursor
+
+Project skill install:
+
+```bash
+mkdir -p .cursor/skills
+rsync -a context-cartographer/ .cursor/skills/context-cartographer/
+```
+
+Optional Cursor rule adapter:
+
+```bash
+mkdir -p .cursor/rules
+cp adapters/cursor/context-cartographer.mdc .cursor/rules/context-cartographer.mdc
+```
+
+Use `/context-cartographer` or ask Cursor Agent to use the `context-cartographer` skill.
+
 ## Usage
 
 Simple prompt:
 
 ```text
-Use $context-cartographer and clean up this project's documentation.
+Use context-cartographer and clean up this project's documentation.
 ```
 
 For a messy existing project:
 
 ```text
-Use $context-cartographer to create proper documentation for this project. Some documentation already exists, but it is incomplete and not useful.
+Use context-cartographer to create proper documentation for this project. Some documentation already exists, but it is incomplete and not useful.
 ```
 
-If you want Codex to decide the documentation cleanup strategy:
+If you want the agent to decide the documentation cleanup strategy:
 
 ```text
-Use $context-cartographer. Analyze existing documentation as project context, decide what to keep, move, or delete, and migrate docs to the skill's structure. Show a proposed docs map before editing.
+Use context-cartographer. Analyze existing documentation as project context, decide what to keep, move, or delete, and migrate docs to the skill's structure. Show a proposed docs map before editing.
 ```
 
 ## Repository Layout
@@ -146,6 +191,12 @@ context-cartographer/
 └── scripts/
     ├── questionnaire_server.py
     └── smoke_test.py
+
+adapters/
+├── claude/
+│   └── CLAUDE.md
+└── cursor/
+    └── context-cartographer.mdc
 ```
 
 ## Validation

@@ -53,7 +53,7 @@ This file is a map, not the full architecture record. Read it when a task affect
 ## Local-Only Policy
 
 - Project-memory docs are local-only by default.
-- Keep `AGENTS.md`, `docs/`, and `.codex-questionnaire/` in `.gitignore` or the repo's VCS ignore file unless the user explicitly wants docs tracked.
+- Keep `AGENTS.md`, `docs/`, and `.context-cartographer-questionnaire/` in `.gitignore` or the repo's VCS ignore file unless the user explicitly wants docs tracked.
 - If `docs/` is public/user-facing, ask before ignoring it broadly.
 
 ## Update Rules
@@ -73,7 +73,7 @@ Use this snippet only when `docs/` is the private project-memory documentation f
 # Local agent/project documentation
 AGENTS.md
 docs/
-.codex-questionnaire/
+.context-cartographer-questionnaire/
 ```
 
 ## docs/architecture-overview.md
