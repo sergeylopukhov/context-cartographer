@@ -77,6 +77,19 @@ If a project already has documentation, the skill should stop after the initial 
 
 If the user chooses "let Codex decide", the skill uses existing docs as project context, preserves durable facts, marks conflicts as `TODO: clarify`, and migrates the docs into the profile-based structure.
 
+## Questions And Questionnaire
+
+The skill has a bundled local questionnaire server. It does not depend on another installed questionnaire skill.
+
+If Codex needs one or two answers, it can ask directly in chat. If it needs more than two questions, it should create a temporary `.codex-questionnaire/` folder in the user's project, run the bundled `scripts/questionnaire_server.py`, and give the user a local `http://127.0.0.1:<port>/` form.
+
+The questionnaire output is saved as:
+
+- `.codex-questionnaire/answers.json`
+- `.codex-questionnaire/answers.md`
+
+The folder is local working data and is ignored by default.
+
 ## Local-Only By Default
 
 Project-memory docs are private working memory for agents by default.

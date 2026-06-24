@@ -32,7 +32,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
 - The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let Codex decide.
 - Continue without this question only when the user already clearly said to decide autonomously, migrate everything, or skip questions.
-- If more than one material decision is unclear, use the bundled questionnaire; otherwise ask the single strategy question in chat.
+- If more than two questions are needed, use the bundled questionnaire instead of asking a numbered list in chat; otherwise ask the one or two questions directly.
 
 ## Reference Files
 
@@ -44,7 +44,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 
 ## Bundled Questionnaire
 
-Use the bundled questionnaire instead of long numbered chat questions when profile, scope, language, ownership, or overwrite decisions require several answers.
+Use the bundled questionnaire instead of long numbered chat questions when profile, scope, language, ownership, or overwrite decisions require more than two answers.
 
 1. Create `.codex-questionnaire/questions.json` in the target project using `references/question_schema.md`.
 2. Back up existing `.codex-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.
