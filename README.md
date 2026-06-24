@@ -115,19 +115,19 @@ Then restart Codex so the new skill is loaded.
 Simple prompt:
 
 ```text
-Используй $context-cartographer и приведи документацию проекта в порядок.
+Use $context-cartographer and clean up this project's documentation.
 ```
 
 For a messy existing project:
 
 ```text
-Используй $context-cartographer, сделай мне нормальную документацию по этому проекту. Сейчас какая-то документация уже есть, но она плохая и неполная.
+Use $context-cartographer to create proper documentation for this project. Some documentation already exists, but it is incomplete and not useful.
 ```
 
 If you want Codex to decide the documentation cleanup strategy:
 
 ```text
-Используй $context-cartographer. Проанализируй существующую документацию как контекст, сам реши что сохранить, перенести или удалить, и приведи docs к структуре skill. Перед правками покажи proposed docs map.
+Use $context-cartographer. Analyze existing documentation as project context, decide what to keep, move, or delete, and migrate docs to the skill's structure. Show a proposed docs map before editing.
 ```
 
 ## Repository Layout
