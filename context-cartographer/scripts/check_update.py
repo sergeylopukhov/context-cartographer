@@ -8,6 +8,7 @@ import base64
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -55,9 +56,36 @@ def raw_version_url(repo: str, branch: str, path: str) -> str:
 
 def fetch_remote_version(repo: str, branch: str, path: str, timeout: int) -> str:
     try:
+        sha = fetch_branch_sha_from_git(repo, branch, timeout)
+        return fetch_remote_version_from_raw(repo, sha, path, timeout, api_error="")
+    except UpdateCheckError:
+        pass
+    try:
         return fetch_remote_version_from_api(repo, branch, path, timeout)
     except UpdateCheckError as exc:
         return fetch_remote_version_from_raw(repo, branch, path, timeout, api_error=str(exc))
+
+
+def fetch_branch_sha_from_git(repo: str, branch: str, timeout: int) -> str:
+    remote = f"https://github.com/{repo}.git"
+    try:
+        completed = subprocess.run(
+            ["git", "ls-remote", "--heads", remote, branch],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise UpdateCheckError(f"Could not run git ls-remote: {exc}") from exc
+    if completed.returncode != 0:
+        detail = (completed.stderr or completed.stdout).strip()
+        raise UpdateCheckError(f"git ls-remote failed: {detail}")
+    first = completed.stdout.strip().splitlines()[0] if completed.stdout.strip() else ""
+    sha = first.split()[0] if first.split() else ""
+    if not re.fullmatch(r"[0-9a-f]{40}", sha):
+        raise UpdateCheckError("git ls-remote did not return a branch SHA.")
+    return sha
 
 
 def fetch_remote_version_from_raw(repo: str, branch: str, path: str, timeout: int, api_error: str) -> str:
