@@ -1,4 +1,4 @@
 interface:
   display_name: "Context Cartographer"
   short_description: "Map and maintain project docs"
-  default_prompt: "Use $context-cartographer to create or audit a minimal project documentation map."
+  default_prompt: "Use $context-cartographer to create, audit, or maintain a minimal project documentation map."

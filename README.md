@@ -13,6 +13,7 @@ It builds a small local documentation system for a project: a short `AGENTS.md`,
 - Uses existing docs as project context when the user delegates cleanup decisions.
 - Keeps agent documentation local-only by default and adds it to `.gitignore`.
 - Makes agent instruction files distinguish discussion from actual edit requests, so the agent does not start changing files just because the user is thinking out loud.
+- Asks how documentation should be maintained after setup: automatically for durable project changes, or only on explicit request.
 - Updates docs later only for durable changes, not routine task notes.
 
 ## Why It Exists
@@ -89,6 +90,17 @@ The questionnaire output is saved as:
 - `.context-cartographer-questionnaire/answers.md`
 
 The folder is local working data and is ignored by default.
+
+## Documentation Maintenance Mode
+
+Initial docs creation and ongoing docs maintenance are separate decisions.
+
+The skill should not silently create or migrate documentation in an empty or unclear project. But when it creates root agent instructions, it must ask how future documentation should be maintained:
+
+- automatic durable maintenance: after completed code, infrastructure, deployment, or operator-workflow work, the agent checks whether durable docs must be updated and does that in the same task;
+- request-only maintenance: docs change only when the user explicitly asks, though the agent may mention that docs are probably stale.
+
+The selected mode is written into `AGENTS.md`, `docs/architecture.md`, and `docs/code_rules.md`.
 
 ## Local-Only By Default
 
@@ -213,4 +225,5 @@ python3 context-cartographer/scripts/smoke_test.py
 - Existing docs are treated as evidence, not discarded blindly.
 - Discussion is not permission to edit.
 - Durable docs are updated only when durable project behavior changes.
+- Documentation maintenance mode is explicit, not guessed.
 - Local project-memory docs should not be committed or deployed by default.

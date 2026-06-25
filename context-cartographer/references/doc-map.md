@@ -35,6 +35,7 @@ Create these only when the profile needs them:
 - `docs/PRODUCT.md`: audience, value proposition, product scope, workflows, pricing or access boundaries, and product tone.
 - `docs/DESIGN.md`: visual direction, UX rules, component behavior, copy rules, and design constraints.
 - `docs/DEPLOYMENT.md`: local runbook, release/deploy/publish flow, environments, logs, rollback, scheduler, queues, and operations.
+- `docs/ADMIN.md`: operator roles, admin workflows, moderation, support flows, and risky backoffice actions.
 
 ## Project Profiles
 
@@ -72,8 +73,11 @@ Suggest these only when the project actually needs them:
 - Put product decisions in `docs/PRODUCT.md`, not architecture files.
 - Put visual and UX rules in `docs/DESIGN.md`, not product or frontend architecture unless they affect implementation.
 - Put deployment, release, publishing, and operational runbooks in `docs/DEPLOYMENT.md`.
+- Put staging, test-data setup, SSH access notes, import/export flow, public URLs, WordPress setup, logs, rollback, queues, scheduler, and monitoring in `docs/DEPLOYMENT.md`.
+- Put operator workflows, support actions, admin panel usage, moderation, backoffice checks, and risky manual actions in `docs/ADMIN.md`.
 - Put code-editing behavior in `docs/code_rules.md`.
 - Ensure root `AGENTS.md` tells agents to read `docs/code_rules.md` before every code or code-adjacent edit.
+- Ensure root `AGENTS.md` states the selected documentation maintenance mode: automatic durable maintenance or request-only maintenance.
 - Put local-only documentation privacy rules in `AGENTS.md`, `docs/architecture.md`, and the repo's VCS ignore file.
 - Put secret-handling and access-control policy in `docs/SECURITY.md` when that file exists.
 - Put temporary task plans outside durable docs unless the user explicitly wants them preserved.
@@ -83,8 +87,10 @@ Suggest these only when the project actually needs them:
 
 - Create the smallest useful set first.
 - Always include `docs/code_rules.md` when creating the minimal documentation core.
+- Ask for the documentation maintenance mode before creating root agent instructions unless the user already specified it.
 - Always add project-memory docs to `.gitignore` or the repo's VCS ignore file unless the user explicitly wants docs tracked.
-- Update docs after later tasks only when durable behavior, architecture, setup, deployment, data model, public interfaces, agent workflow, or documentation ownership changes.
+- Under automatic durable maintenance, update docs after later tasks only when durable behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership changes.
+- Under request-only maintenance, do not update docs after later tasks unless the user explicitly asks, but mention likely stale docs when relevant.
 - Do not create UI, design, product, deployment, or security files unless repo evidence or user intent supports them.
 - Do not create conditional files merely because they might be useful later.
 - If no existing owner file fits, ask before creating a new documentation file.

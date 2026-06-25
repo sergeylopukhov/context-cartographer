@@ -13,4 +13,5 @@ Use this rule as a thin adapter. Prefer the installed skill at `.cursor/skills/c
 - Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
 - Before changing existing docs, scan read-only and show the proposed docs map: current docs, topic owners, and planned create/update/delete actions.
 - Before code or code-adjacent edits, read `docs/code_rules.md` when it exists.
+- When root instructions define automatic durable documentation maintenance, update the relevant owner docs in the same task after deployment, staging, test-data, SSH, import/export, public URL, WordPress setup, operator-workflow, architecture, or public-interface changes. If automatic mode applies and no docs update is needed, say so in the final response.
 - Keep project-memory docs local-only unless the user explicitly asks to track, publish, upload, or deploy them.

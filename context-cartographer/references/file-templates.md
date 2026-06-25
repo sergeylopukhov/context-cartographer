@@ -2,6 +2,8 @@
 
 Use these compact templates when creating new project documentation. Remove sections that do not apply. Mark unknown durable facts as `TODO: clarify`.
 
+Resolve the documentation maintenance mode before writing generated files. Do not leave maintenance-mode TODOs in output; replace them with either `automatic durable maintenance` or `request-only maintenance`.
+
 ## Contents
 
 - Minimal core: `AGENTS.md`, `docs/architecture.md`, `docs/architecture-overview.md`, `docs/architecture-quality-risks.md`, `docs/code_rules.md`
@@ -20,7 +22,9 @@ Use these compact templates when creating new project documentation. Remove sect
 - Treat project-memory docs as local-only: do not commit, push, upload, publish, or deploy them unless explicitly requested.
 - Read `docs/code_rules.md` before changing code or code-adjacent project files such as tests, migrations, scripts, build config, deployment config, or application behavior.
 - Read `docs/architecture.md` only when the task affects structure, behavior, routes, models, services, tests, deployment, durable rules, or documentation organization.
-- Update the matching docs file only when a task changes durable project behavior, architecture, setup, deployment, data model, public interfaces, agent workflow, or documentation ownership.
+- Documentation maintenance mode: TODO: replace with `automatic durable maintenance` or `request-only maintenance` before writing this file.
+- If maintenance mode is `automatic durable maintenance`, after any completed work that changes durable project behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership, check whether the matching docs file must be updated. If yes, update it in the same task before the final response; if not, explicitly say that no durable docs update was needed.
+- If maintenance mode is `request-only maintenance`, update docs only when the user explicitly asks, but mention when completed work may have made existing docs stale.
 - For product, design, deployment, security, API, integration, content, admin, or advertising questions, read the matching `docs/*.md` owner file first.
 - If documentation ownership is unclear or no suitable file exists, ask before creating a new documentation file.
 ```
@@ -60,7 +64,9 @@ This file is a map, not the full architecture record. Read it when a task affect
 
 - Write new facts only to the most specific owner file.
 - Do not duplicate durable facts across files.
-- Update docs only for durable project changes; do not record routine implementation notes, transient task status, or obvious edits.
+- Documentation maintenance mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
+- Under `automatic durable maintenance`, update docs only for durable project changes and do it in the same task; do not record routine implementation notes, transient task status, or obvious edits.
+- Under `request-only maintenance`, do not edit docs unless explicitly asked, but flag likely stale docs in the final response.
 - If no owner file fits, ask before creating one.
 - After renaming or deleting docs, check stale references with `rg`.
 ```
@@ -195,7 +201,9 @@ Treat agent-written code like code from a new contributor: useful, but not trust
 
 ## 7. Durable Documentation
 
-- Update docs only when the task changes durable behavior, architecture, setup, deployment, data model, public interfaces, agent workflow, or documentation ownership.
+- Documentation maintenance mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
+- Under `automatic durable maintenance`, after any completed work that changes deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, setup, architecture, data model, public interfaces, agent workflow, or documentation ownership, check whether `docs/DEPLOYMENT.md`, `docs/ADMIN.md`, `docs/architecture.md`, `docs/SECURITY.md`, or another owner doc must be updated. If yes, update it in the same task before the final response; if not, explicitly say that no durable docs update was needed.
+- Under `request-only maintenance`, update docs only when the user explicitly asks, but mention if completed work likely made docs stale.
 - Do not record routine implementation notes, transient task status, or obvious edits.
 - If documentation ownership is unclear, ask before creating a new docs file.
 

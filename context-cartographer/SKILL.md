@@ -19,10 +19,12 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - Classify the project profile before choosing which docs to create.
 - Create only documentation files that the project needs now.
 - When creating a project documentation system, always include `docs/code_rules.md` and route `AGENTS.md` to it for code and code-adjacent edits.
+- Distinguish initial documentation creation from ongoing documentation maintenance: create or migrate docs only with user intent, but once a docs system exists, encode the selected maintenance mode in `AGENTS.md` and `docs/code_rules.md`.
+- Never leave documentation maintenance mode as a placeholder in generated files; write the selected mode explicitly.
 - Treat project-memory docs as local-only by default: add them to `.gitignore` or the repo's VCS ignore file, and do not commit, push, upload, publish, or deploy them unless the user explicitly asks.
 - If existing docs are present, ask what to do with them before rewriting, deleting, or moving them; when the user delegates the decision, use those docs as project context and migrate durable facts into the skill's documentation structure.
 - For existing docs, show a short proposed docs map before editing: current docs, topic owners, and planned changes.
-- Update docs in later tasks only when durable project behavior, architecture, setup, deployment, data model, public interfaces, agent workflow, or documentation ownership changes; do not add routine notes or restate obvious edits.
+- Update docs in later tasks only when durable project behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership changes; do not add routine notes or restate obvious edits.
 - Put unknown facts as `TODO: clarify`; do not invent project facts.
 - Use the bundled questionnaire for broad unclear decisions or many options.
 - Verify links and stale references after changing documentation.
@@ -32,6 +34,10 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
 - The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let the agent decide.
 - Continue without this question only when the user already clearly said to decide autonomously, migrate everything, or skip questions.
+- Before creating a new documentation system or replacing root agent instructions, ask for a documentation maintenance mode unless the user already specified it:
+  - automatic durable maintenance: after completed code or code-adjacent work, update the relevant durable docs in the same task when the work changes durable project knowledge;
+  - request-only maintenance: update docs only when the user explicitly asks, but mention when docs may now be stale.
+- If the user asks for a recommendation, choose automatic durable maintenance for repositories with an established docs system, and request-only maintenance for throwaway prototypes or repos where docs are intentionally not tracked.
 - If more than two questions are needed, use the bundled questionnaire instead of asking a numbered list in chat; otherwise ask the one or two questions directly.
 
 ## Reference Files
@@ -58,7 +64,7 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 ## New Project Workflow
 
 1. Inspect the initial project structure and existing files.
-2. Identify project profile, stack, audience, language policy, and whether the user requested automatic setup.
+2. Identify project profile, stack, audience, language policy, whether the user requested automatic setup, and the documentation maintenance mode.
 3. Ask concise questions if core facts are missing; use the bundled questionnaire for multi-question decisions.
 4. Create a short root `AGENTS.md` router only when absent or explicitly approved.
 5. Create `docs/architecture.md` as the documentation map.
@@ -75,11 +81,12 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let the agent decide.
 5. If the user chooses "let the agent decide", read existing docs as project context, preserve durable facts, resolve conflicts with `TODO: clarify` or questions, and migrate docs into this skill's minimal-core/profile-based structure.
 6. If the project has or is getting a docs system, ensure `docs/code_rules.md` exists or propose adding it.
-7. Show a proposed docs map before changing existing docs: list current docs, topic owners, and the exact planned create/update/delete actions.
-8. Ensure project-memory docs are ignored by VCS; if `docs/` is public/user-facing, ask before adding broad ignore patterns.
-9. Ask before deleting, merging, renaming, or heavily rewriting docs unless the user already delegated docs cleanup decisions to the agent.
-10. Apply approved edits narrowly.
-11. Check changed links and old filenames with `rg`.
+7. If root agent instructions do not state a documentation maintenance mode, ask for one before updating them unless the user delegated the decision.
+8. Show a proposed docs map before changing existing docs: list current docs, topic owners, and the exact planned create/update/delete actions.
+9. Ensure project-memory docs are ignored by VCS; if `docs/` is public/user-facing, ask before adding broad ignore patterns.
+10. Ask before deleting, merging, renaming, or heavily rewriting docs unless the user already delegated docs cleanup decisions to the agent.
+11. Apply approved edits narrowly.
+12. Check changed links and old filenames with `rg`.
 
 ## Cleanup Workflow
 
@@ -102,6 +109,7 @@ Use cleanup mode when docs are too large, duplicated, stale, or mixed by topic.
 - Treat `docs/architecture-frontend.md`, `docs/PRODUCT.md`, `docs/DESIGN.md`, and `docs/DEPLOYMENT.md` as profile-based docs, not universal core docs.
 - Treat `docs/SECURITY.md` as conditional: create it only for auth, payments, PII, production access, external tokens, or secret-handling needs.
 - Allow automatic docs creation for empty projects only when the user explicitly asks for it.
+- Do not treat the "explicit request before edits" rule as blocking automatic durable documentation maintenance after the user has already asked for code, infrastructure, deployment, or operator-workflow changes and selected automatic durable maintenance.
 
 ## Exit Criteria
 
