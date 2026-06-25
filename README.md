@@ -169,10 +169,18 @@ Use `/context-cartographer` or ask Cursor Agent to use the `context-cartographer
 
 ## Usage
 
+Short prompts are enough. The skill should scan the project, ask missing decisions through its bundled questionnaire when needed, propose a docs map, and then update the approved documentation.
+
 Simple prompt:
 
 ```text
-Use context-cartographer and clean up this project's documentation.
+Use $context-cartographer and bring this project's documentation into shape.
+```
+
+Russian prompt:
+
+```text
+Используй $context-cartographer и доделай документацию проекта.
 ```
 
 For a messy existing project:

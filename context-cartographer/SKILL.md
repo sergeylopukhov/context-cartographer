@@ -1,6 +1,6 @@
 ---
 name: context-cartographer
-description: AGENTS.md, CLAUDE.md, Cursor rules, architecture.md, project docs, docs/, and documentation map setup, audit, cleanup, and maintenance for new and existing repositories. Use when an AI coding agent needs to create or update agent instructions, classify project type before choosing docs, split oversized architecture docs, route documentation ownership, or decide which project docs to read or update for UI apps, websites, SaaS, APIs, bots, automations, libraries, content projects, ecommerce, payments, data/ML, infra/devops, mobile apps, and internal tools.
+description: AGENTS.md, CLAUDE.md, Cursor rules, architecture.md, project docs, docs/, and documentation map setup, audit, cleanup, and maintenance for new and existing repositories. Use when an AI coding agent needs to create or update agent instructions, classify project type before choosing docs, split oversized architecture docs, route documentation ownership, or decide which project docs to read or update for UI apps, websites, SaaS, APIs, bots, automations, libraries, content projects, ecommerce, payments, data/ML, infra/devops, mobile apps, and internal tools. Also use for short documentation requests such as "доделай документацию", "создай нормальную доку", "приведи docs в порядок", "почини AGENTS.md", or "настрой документацию проекта".
 ---
 
 # Context Cartographer
@@ -11,6 +11,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 
 ## Core Rules
 
+- Short broad prompts are enough. If the user asks to create, finish, fix, improve, clean up, or set up project documentation without details, run the full documentation workflow from a read-only scan; do not ask the user to provide a long prompt.
 - Inspect the repository read-only before proposing documentation changes.
 - Ask when the project goal, documentation ownership, or target file is unclear.
 - In generated `AGENTS.md`, make conversation-only the default for questions, analysis, brainstorming, and project discussion; require explicit user intent before edits.
@@ -31,6 +32,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 
 ## Mandatory Decision Gates
 
+- For a broad short prompt, include all missing decisions in the normal workflow instead of asking the user to rewrite the request. Use the bundled questionnaire when there are more than two decisions.
 - After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
 - The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let the agent decide.
 - Continue without this question only when the user already clearly said to decide autonomously, migrate everything, or skip questions.
@@ -51,6 +53,14 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 ## Bundled Questionnaire
 
 Use the bundled questionnaire instead of long numbered chat questions when profile, scope, language, ownership, or overwrite decisions require more than two answers.
+
+For broad short prompts, the questionnaire should normally include:
+
+- documentation cleanup strategy for existing docs;
+- documentation maintenance mode;
+- project profile and primary workflow;
+- whether project-memory docs should stay local-only or be tracked/published;
+- any unclear profile-specific docs such as deployment, admin, security, API, integrations, content, product, or design.
 
 1. Create `.context-cartographer-questionnaire/questions.json` in the target project using `references/question_schema.md`.
 2. Back up existing `.context-cartographer-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.

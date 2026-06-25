@@ -10,6 +10,7 @@ Use this rule as a thin adapter. Prefer the installed skill at `.cursor/skills/c
 
 - For project documentation setup, audit, cleanup, `AGENTS.md`, `architecture.md`, docs maps, or local agent-memory docs, use the `context-cartographer` skill workflow.
 - If the skill is not installed, ask the user to install it into `.cursor/skills/context-cartographer/` before doing broad documentation migration.
+- Treat short broad prompts such as "доделай документацию" or "bring docs into shape" as a request to run the full context-cartographer workflow; do not require a long prompt.
 - Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
 - Before changing existing docs, scan read-only and show the proposed docs map: current docs, topic owners, and planned create/update/delete actions.
 - Before code or code-adjacent edits, read `docs/code_rules.md` when it exists.
