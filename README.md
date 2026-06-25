@@ -100,6 +100,8 @@ The skill should not silently create or migrate documentation in an empty or unc
 - automatic durable maintenance: after completed code, infrastructure, deployment, or operator-workflow work, the agent checks whether durable docs must be updated and does that in the same task;
 - request-only maintenance: docs change only when the user explicitly asks, though the agent may mention that docs are probably stale.
 
+`automatic durable maintenance` is explicit opt-in. The skill must not choose it just because the project already has docs or because the user asked for a recommendation.
+
 The selected mode is written into `AGENTS.md`, `docs/architecture.md`, and `docs/code_rules.md`.
 
 ## Local-Only By Default

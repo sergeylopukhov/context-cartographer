@@ -21,6 +21,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - Create only documentation files that the project needs now.
 - When creating a project documentation system, always include `docs/code_rules.md` and route `AGENTS.md` to it for code and code-adjacent edits.
 - Distinguish initial documentation creation from ongoing documentation maintenance: create or migrate docs only with user intent, but once a docs system exists, encode the selected maintenance mode in `AGENTS.md` and `docs/code_rules.md`.
+- Never infer documentation maintenance mode from the project shape, existing docs, or a broad prompt. `automatic durable maintenance` requires explicit user selection.
 - Never leave documentation maintenance mode as a placeholder in generated files; write the selected mode explicitly.
 - Treat project-memory docs as local-only by default: add them to `.gitignore` or the repo's VCS ignore file, and do not commit, push, upload, publish, or deploy them unless the user explicitly asks.
 - If existing docs are present, ask what to do with them before rewriting, deleting, or moving them; when the user delegates the decision, use those docs as project context and migrate durable facts into the skill's documentation structure.
@@ -33,13 +34,15 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 ## Mandatory Decision Gates
 
 - For a broad short prompt, include all missing decisions in the normal workflow instead of asking the user to rewrite the request. Use the bundled questionnaire when there are more than two decisions.
+- For a broad short prompt, run the bundled questionnaire after the read-only scan and before any documentation edits unless the prompt already explicitly answers all decision gates.
+- Documentation maintenance mode is a blocking gate before writing or replacing `AGENTS.md`, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
 - After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
 - The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let the agent decide.
-- Continue without this question only when the user already clearly said to decide autonomously, migrate everything, or skip questions.
+- Continue without the cleanup strategy question only when the user already clearly said to decide autonomously, migrate everything, or skip questions. This delegation applies only to cleanup/migration strategy, not to documentation maintenance mode.
 - Before creating a new documentation system or replacing root agent instructions, ask for a documentation maintenance mode unless the user already specified it:
   - automatic durable maintenance: after completed code or code-adjacent work, update the relevant durable docs in the same task when the work changes durable project knowledge;
   - request-only maintenance: update docs only when the user explicitly asks, but mention when docs may now be stale.
-- If the user asks for a recommendation, choose automatic durable maintenance for repositories with an established docs system, and request-only maintenance for throwaway prototypes or repos where docs are intentionally not tracked.
+- If the user asks for a recommendation, explain the recommendation briefly, but still require the user to choose a maintenance mode before writing it into docs.
 - If more than two questions are needed, use the bundled questionnaire instead of asking a numbered list in chat; otherwise ask the one or two questions directly.
 
 ## Reference Files
@@ -62,6 +65,8 @@ For broad short prompts, the questionnaire should normally include:
 - whether project-memory docs should stay local-only or be tracked/published;
 - any unclear profile-specific docs such as deployment, admin, security, API, integrations, content, product, or design.
 
+The documentation maintenance mode question must be required single-choice with only the real modes as choices, no default answer, no `recommended` value, and no "Not sure/recommend" option. The user must actively select `automatic durable maintenance` or `request-only maintenance`.
+
 1. Create `.context-cartographer-questionnaire/questions.json` in the target project using `references/question_schema.md`.
 2. Back up existing `.context-cartographer-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.
 3. Run `python3 <this-skill>/scripts/questionnaire_server.py --input .context-cartographer-questionnaire/questions.json --out-dir .context-cartographer-questionnaire --port 0`.
@@ -75,13 +80,14 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 
 1. Inspect the initial project structure and existing files.
 2. Identify project profile, stack, audience, language policy, whether the user requested automatic setup, and the documentation maintenance mode.
-3. Ask concise questions if core facts are missing; use the bundled questionnaire for multi-question decisions.
-4. Create a short root `AGENTS.md` router only when absent or explicitly approved.
-5. Create `docs/architecture.md` as the documentation map.
-6. Create the full minimal core docs, including `docs/code_rules.md`, plus only the profile docs that match the project; do not create every possible file.
-7. Add created project-memory docs to `.gitignore` or the repo's VCS ignore file unless the user explicitly wants them tracked.
-8. Link all created docs from `docs/architecture.md`.
-9. Report what was created and what still needs clarification.
+3. For broad short prompts, run the bundled questionnaire before edits unless all decision gates were explicitly answered in the prompt.
+4. Ask concise questions if core facts are missing; use the bundled questionnaire for multi-question decisions.
+5. Create a short root `AGENTS.md` router only when absent or explicitly approved.
+6. Create `docs/architecture.md` as the documentation map.
+7. Create the full minimal core docs, including `docs/code_rules.md`, plus only the profile docs that match the project; do not create every possible file.
+8. Add created project-memory docs to `.gitignore` or the repo's VCS ignore file unless the user explicitly wants them tracked.
+9. Link all created docs from `docs/architecture.md`.
+10. Report what was created and what still needs clarification.
 
 ## Existing Project Workflow
 
@@ -91,7 +97,7 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let the agent decide.
 5. If the user chooses "let the agent decide", read existing docs as project context, preserve durable facts, resolve conflicts with `TODO: clarify` or questions, and migrate docs into this skill's minimal-core/profile-based structure.
 6. If the project has or is getting a docs system, ensure `docs/code_rules.md` exists or propose adding it.
-7. If root agent instructions do not state a documentation maintenance mode, ask for one before updating them unless the user delegated the decision.
+7. If root agent instructions do not state a documentation maintenance mode, ask for one before updating them. Do not treat generic delegation as permission to choose the mode.
 8. Show a proposed docs map before changing existing docs: list current docs, topic owners, and the exact planned create/update/delete actions.
 9. Ensure project-memory docs are ignored by VCS; if `docs/` is public/user-facing, ask before adding broad ignore patterns.
 10. Ask before deleting, merging, renaming, or heavily rewriting docs unless the user already delegated docs cleanup decisions to the agent.

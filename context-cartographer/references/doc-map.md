@@ -78,6 +78,7 @@ Suggest these only when the project actually needs them:
 - Put code-editing behavior in `docs/code_rules.md`.
 - Ensure root `AGENTS.md` tells agents to read `docs/code_rules.md` before every code or code-adjacent edit.
 - Ensure root `AGENTS.md` states the selected documentation maintenance mode: automatic durable maintenance or request-only maintenance.
+- Do not infer documentation maintenance mode from project type, existing docs, or "let the agent decide"; automatic durable maintenance requires explicit user selection.
 - Put local-only documentation privacy rules in `AGENTS.md`, `docs/architecture.md`, and the repo's VCS ignore file.
 - Put secret-handling and access-control policy in `docs/SECURITY.md` when that file exists.
 - Put temporary task plans outside durable docs unless the user explicitly wants them preserved.
@@ -87,7 +88,7 @@ Suggest these only when the project actually needs them:
 
 - Create the smallest useful set first.
 - Always include `docs/code_rules.md` when creating the minimal documentation core.
-- Ask for the documentation maintenance mode before creating root agent instructions unless the user already specified it.
+- Ask for the documentation maintenance mode before creating root agent instructions unless the user already specified it. This is a blocking gate, not a recommendation.
 - Always add project-memory docs to `.gitignore` or the repo's VCS ignore file unless the user explicitly wants docs tracked.
 - Under automatic durable maintenance, update docs after later tasks only when durable behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership changes.
 - Under request-only maintenance, do not update docs after later tasks unless the user explicitly asks, but mention likely stale docs when relevant.
