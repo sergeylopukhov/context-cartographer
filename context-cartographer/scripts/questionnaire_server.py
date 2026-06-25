@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 
 HOST = "127.0.0.1"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 SUPPORTED_TYPES = {"single_choice", "multiple_choice", "text", "textarea", "scale"}
 CHOICE_TYPES = {"single_choice", "multiple_choice"}
 SUPPORTED_LANGUAGES = {"en", "ru"}
@@ -52,6 +52,10 @@ UI_STRINGS = {
         "save_button": "Сохранить ответы",
         "clear_draft_button": "Очистить локальный черновик",
         "status_line": "После сохранения файлы появятся в локальной папке проекта.",
+        "eyebrow": "Локальная анкета",
+        "local_answers_title": "Ответы сохраняются локально",
+        "local_answers_description": "Черновик хранится в браузере, итоговые файлы записываются в папку проекта после нажатия кнопки сохранения.",
+        "questions_aria": "Вопросы анкеты",
         "summary_heading": "Сводка ответов",
         "progress_answered": "Отвечено",
         "progress_of": "из",
@@ -92,6 +96,10 @@ UI_STRINGS = {
         "save_button": "Save Answers",
         "clear_draft_button": "Clear Local Draft",
         "status_line": "After saving, files will appear in the local project folder.",
+        "eyebrow": "Local Questionnaire",
+        "local_answers_title": "Answers Are Saved Locally",
+        "local_answers_description": "The draft is stored in your browser. Final files are written to the project folder after you save.",
+        "questions_aria": "Questionnaire questions",
         "summary_heading": "Answer Summary",
         "progress_answered": "Answered",
         "progress_of": "of",
@@ -1046,59 +1054,115 @@ HTML_TEMPLATE = """<!doctype html>
   <style>
     :root {
       color-scheme: light dark;
-      --bg: #f5f7f9;
+      --bg: #eef8f6;
+      --bg-strong: #d7f3ef;
       --panel: #ffffff;
-      --text: #17202a;
-      --muted: #596575;
-      --border: #d7dee7;
-      --accent: #0f766e;
-      --accent-strong: #0b5f59;
-      --accent-soft: #e0f2f1;
+      --panel-muted: #f7fcfb;
+      --text: #102522;
+      --muted: #57706b;
+      --muted-strong: #2f5752;
+      --border: #b9dfd8;
+      --border-soft: #d8ece8;
+      --primary: #0d9488;
+      --primary-strong: #0f766e;
+      --primary-soft: #d9f5f1;
+      --accent: #c2410c;
       --danger: #b42318;
       --success: #067647;
-      --shadow: 0 12px 36px rgba(23, 32, 42, 0.12);
+      --ring: rgba(13, 148, 136, 0.34);
+      --shadow: 0 22px 70px rgba(15, 118, 110, 0.14);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
     }
 
     @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #111827;
-        --panel: #1f2937;
-        --text: #f8fafc;
-        --muted: #bac4d1;
-        --border: #3f4a5a;
-        --accent: #5eead4;
-        --accent-strong: #99f6e4;
-        --accent-soft: #134e4a;
+        --bg: #071512;
+        --bg-strong: #0b2722;
+        --panel: #0f211e;
+        --panel-muted: #132a26;
+        --text: #effdf9;
+        --muted: #a6c7c1;
+        --muted-strong: #d2f4ef;
+        --border: #24554e;
+        --border-soft: #1c403a;
+        --primary: #5eead4;
+        --primary-strong: #99f6e4;
+        --primary-soft: #123a34;
+        --accent: #fdba74;
         --danger: #fda29b;
         --success: #86efac;
-        --shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+        --ring: rgba(94, 234, 212, 0.36);
+        --shadow: 0 28px 80px rgba(0, 0, 0, 0.36);
       }
     }
 
     * { box-sizing: border-box; }
+    html { min-height: 100%; }
 
     body {
       margin: 0;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
+      background:
+        linear-gradient(135deg, var(--bg-strong), transparent 42%),
+        var(--bg);
       color: var(--text);
       line-height: 1.5;
+      min-height: 100dvh;
+      text-rendering: optimizeLegibility;
     }
 
     main {
-      width: min(980px, 100%);
+      width: min(1180px, 100%);
       margin: 0 auto;
-      padding: 32px 18px 56px;
+      padding: 28px 18px 56px;
     }
 
-    header {
-      margin-bottom: 20px;
+    .app-shell {
+      display: grid;
+      grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .intro-panel {
+      position: sticky;
+      top: 18px;
+      min-height: calc(100dvh - 56px);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 24px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .questionnaire-panel {
+      min-width: 0;
+      display: grid;
+      gap: 16px;
+    }
+
+    .eyebrow {
+      width: fit-content;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--primary-soft);
+      color: var(--primary-strong);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
     }
 
     h1 {
-      margin: 0 0 10px;
-      font-size: clamp(1.65rem, 4vw, 2.4rem);
-      line-height: 1.12;
+      margin: 0;
+      font-size: clamp(2rem, 4.4vw, 3rem);
+      line-height: 1.04;
       letter-spacing: 0;
     }
 
@@ -1106,21 +1170,49 @@ HTML_TEMPLATE = """<!doctype html>
       color: var(--muted);
     }
 
+    .description {
+      margin: 0;
+      font-size: 1.02rem;
+    }
+
     .context {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: color-mix(in srgb, var(--panel) 75%, var(--bg));
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      background: var(--panel-muted);
       white-space: pre-wrap;
+      font-size: 0.94rem;
+    }
+
+    .meta-card {
+      margin-top: auto;
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      background: var(--panel-muted);
+    }
+
+    .meta-card strong {
+      color: var(--muted-strong);
+      font-size: 0.95rem;
+    }
+
+    .meta-card small {
+      color: var(--muted);
     }
 
     .progress-wrap {
       position: sticky;
-      top: 0;
-      z-index: 2;
-      padding: 12px 0;
-      background: var(--bg);
+      top: 14px;
+      z-index: 4;
+      padding: 14px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      background: color-mix(in srgb, var(--panel) 94%, transparent);
+      box-shadow: 0 14px 38px rgba(15, 118, 110, 0.10);
+      backdrop-filter: blur(14px);
     }
 
     .progress-meta {
@@ -1129,32 +1221,33 @@ HTML_TEMPLATE = """<!doctype html>
       gap: 12px;
       margin-bottom: 8px;
       color: var(--muted);
-      font-size: 0.94rem;
+      font-size: 0.9rem;
+      font-weight: 650;
     }
 
     .progress-track {
-      height: 10px;
+      height: 8px;
       overflow: hidden;
       border-radius: 999px;
-      background: color-mix(in srgb, var(--border) 70%, transparent);
+      background: var(--border-soft);
     }
 
     .progress-bar {
       height: 100%;
       width: 0%;
-      background: var(--accent);
-      transition: width 160ms ease;
+      background: var(--primary);
+      transition: width 180ms ease;
     }
 
     form {
       display: grid;
-      gap: 16px;
+      gap: 14px;
     }
 
     .question {
-      padding: 18px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
       background: var(--panel);
       box-shadow: var(--shadow);
     }
@@ -1165,9 +1258,9 @@ HTML_TEMPLATE = """<!doctype html>
       display: flex;
       gap: 8px;
       align-items: baseline;
-      margin: 0 0 6px;
-      font-size: 1.08rem;
-      font-weight: 700;
+      margin: 0 0 8px;
+      font-size: clamp(1.08rem, 2vw, 1.28rem);
+      font-weight: 800;
       letter-spacing: 0;
     }
 
@@ -1191,30 +1284,42 @@ HTML_TEMPLATE = """<!doctype html>
       grid-template-columns: auto 1fr;
       gap: 10px;
       align-items: start;
-      padding: 12px;
+      min-height: 52px;
+      padding: 13px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       cursor: pointer;
-      background: color-mix(in srgb, var(--panel) 85%, var(--bg));
+      background: var(--panel-muted);
+      transition: border-color 170ms ease, background-color 170ms ease, transform 170ms ease;
     }
 
     .option:hover {
-      border-color: var(--accent);
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+
+    .option:has(input:checked) {
+      border-color: var(--primary);
+      background: var(--primary-soft);
     }
 
     .option input {
+      width: 18px;
+      height: 18px;
       margin-top: 3px;
+      accent-color: var(--primary);
     }
 
     .option-label {
       display: block;
-      font-weight: 650;
+      color: var(--text);
+      font-weight: 750;
     }
 
     .recommended {
       display: inline-block;
       margin-left: 8px;
-      color: var(--accent-strong);
+      color: var(--primary-strong);
       font-size: 0.86rem;
       font-weight: 700;
     }
@@ -1228,12 +1333,20 @@ HTML_TEMPLATE = """<!doctype html>
 
     input[type="text"], textarea {
       width: 100%;
+      min-height: 48px;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 13px;
+      border-radius: var(--radius-md);
+      padding: 13px 14px;
       background: var(--panel);
       color: var(--text);
       font: inherit;
+      outline: none;
+      transition: border-color 170ms ease, box-shadow 170ms ease;
+    }
+
+    input[type="text"]:focus, textarea:focus, button:focus-visible, .option:focus-within, .scale label:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--ring);
     }
 
     textarea {
@@ -1257,7 +1370,8 @@ HTML_TEMPLATE = """<!doctype html>
     .comment label {
       display: block;
       margin-bottom: 6px;
-      font-weight: 650;
+      color: var(--muted-strong);
+      font-weight: 750;
     }
 
     .comment textarea {
@@ -1276,10 +1390,16 @@ HTML_TEMPLATE = """<!doctype html>
       width: 44px;
       height: 44px;
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      background: color-mix(in srgb, var(--panel) 85%, var(--bg));
+      background: var(--panel-muted);
       font-weight: 700;
+      transition: border-color 170ms ease, background-color 170ms ease, transform 170ms ease;
+    }
+
+    .scale label:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
     }
 
     .scale input {
@@ -1289,9 +1409,9 @@ HTML_TEMPLATE = """<!doctype html>
     }
 
     .scale label:has(input:checked) {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: var(--accent-strong);
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary-strong);
     }
 
     .actions {
@@ -1300,24 +1420,31 @@ HTML_TEMPLATE = """<!doctype html>
       gap: 12px;
       align-items: center;
       padding: 18px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
       background: var(--panel);
     }
 
     button {
+      min-height: 46px;
       border: 0;
-      border-radius: 8px;
-      padding: 11px 16px;
-      background: var(--accent);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      background: var(--primary);
       color: #ffffff;
       font: inherit;
       font-weight: 750;
       cursor: pointer;
+      transition: background-color 170ms ease, color 170ms ease, opacity 170ms ease;
     }
 
     button:hover {
-      background: var(--accent-strong);
+      background: var(--primary-strong);
+    }
+
+    button:disabled {
+      cursor: wait;
+      opacity: 0.62;
     }
 
     .ghost {
@@ -1327,16 +1454,17 @@ HTML_TEMPLATE = """<!doctype html>
     }
 
     .ghost:hover {
-      border-color: var(--accent);
-      background: var(--accent-soft);
-      color: var(--accent-strong);
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      color: var(--primary-strong);
     }
 
     .message {
       width: 100%;
       padding: 12px 14px;
-      border-radius: 8px;
+      border-radius: var(--radius-md);
       display: none;
+      font-weight: 650;
     }
 
     .message.show { display: block; }
@@ -1354,10 +1482,11 @@ HTML_TEMPLATE = """<!doctype html>
     .summary {
       margin-top: 16px;
       padding: 18px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
       background: var(--panel);
       display: none;
+      box-shadow: var(--shadow);
     }
 
     .summary.show { display: block; }
@@ -1366,43 +1495,74 @@ HTML_TEMPLATE = """<!doctype html>
     .summary dt { font-weight: 750; }
     .summary dd { margin: 4px 0 0; color: var(--muted); white-space: pre-wrap; }
 
+    @media (max-width: 860px) {
+      main { padding: 18px 12px 44px; }
+      .app-shell { grid-template-columns: 1fr; }
+      .intro-panel {
+        position: static;
+        min-height: auto;
+        padding: 18px;
+      }
+    }
+
     @media (max-width: 640px) {
-      main { padding: 22px 12px 44px; }
       .question, .actions, .summary { padding: 14px; }
       .option { grid-template-columns: 24px 1fr; }
       .other-input { grid-column: 1 / -1; }
-      .progress-wrap { padding-top: 8px; }
+      .progress-wrap { top: 8px; }
+      .progress-meta {
+        display: grid;
+        gap: 4px;
+      }
+      button {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 1ms !important;
+        animation-duration: 1ms !important;
+      }
     }
   </style>
 </head>
 <body>
-  <main>
-    <header>
+  <main class="app-shell">
+    <aside class="intro-panel">
+      <div class="eyebrow" id="eyebrow"></div>
       <h1 id="title"></h1>
       <p class="description" id="description"></p>
       <div class="context" id="context" hidden></div>
-    </header>
-
-    <div class="progress-wrap" aria-live="polite">
-      <div class="progress-meta">
-        <span id="progressText"></span>
-        <span id="draftStatus"></span>
+      <div class="meta-card">
+        <strong id="metaTitle"></strong>
+        <small id="metaText"></small>
       </div>
-      <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
-    </div>
+    </aside>
 
-    <form id="form"></form>
+    <section class="questionnaire-panel" id="questionnairePanel">
+      <div class="progress-wrap" aria-live="polite">
+        <div class="progress-meta">
+          <span id="progressText"></span>
+          <span id="draftStatus"></span>
+        </div>
+        <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
+      </div>
 
-    <section class="actions">
-      <button type="button" id="saveButton"></button>
-      <button type="button" class="ghost" id="clearDraftButton"></button>
-      <span class="status-line" id="statusLine"></span>
-      <div class="message" id="message"></div>
-    </section>
+      <form id="form"></form>
 
-    <section class="summary" id="summary">
-      <h2 id="summaryHeading"></h2>
-      <dl id="summaryList"></dl>
+      <section class="actions">
+        <button type="button" id="saveButton"></button>
+        <button type="button" class="ghost" id="clearDraftButton"></button>
+        <span class="status-line" id="statusLine"></span>
+        <div class="message" id="message" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="summary" id="summary">
+        <h2 id="summaryHeading"></h2>
+        <dl id="summaryList"></dl>
+      </section>
     </section>
   </main>
 
@@ -1413,9 +1573,13 @@ HTML_TEMPLATE = """<!doctype html>
     const storageKey = "context-cartographer-questionnaire:" + questionnaire.title + ":" + questionnaire.questions.map(q => q.id).join(",");
     const answers = {};
     const form = document.getElementById("form");
+    const questionnairePanel = document.getElementById("questionnairePanel");
+    const eyebrow = document.getElementById("eyebrow");
     const title = document.getElementById("title");
     const description = document.getElementById("description");
     const context = document.getElementById("context");
+    const metaTitle = document.getElementById("metaTitle");
+    const metaText = document.getElementById("metaText");
     const progressText = document.getElementById("progressText");
     const progressBar = document.getElementById("progressBar");
     const draftStatus = document.getElementById("draftStatus");
@@ -1432,6 +1596,10 @@ HTML_TEMPLATE = """<!doctype html>
     }
 
     function applyStaticLabels() {
+      eyebrow.textContent = t("eyebrow", "Local Questionnaire");
+      metaTitle.textContent = t("local_answers_title", "Answers Are Saved Locally");
+      metaText.textContent = t("local_answers_description", "The draft is stored in your browser. Final files are written to the project folder after you save.");
+      questionnairePanel.setAttribute("aria-label", t("questions_aria", "Questionnaire questions"));
       saveButton.textContent = t("save_button", "Save Answers");
       clearDraftButton.textContent = t("clear_draft_button", "Clear Local Draft");
       statusLine.textContent = t("status_line", "After saving, files will appear in the local project folder.");
@@ -1825,6 +1993,8 @@ HTML_TEMPLATE = """<!doctype html>
         return;
       }
       showMessage("success", t("saving", "Saving answers..."));
+      saveButton.disabled = true;
+      saveButton.setAttribute("aria-busy", "true");
       try {
         const response = await fetch("/save", {
           method: "POST",
@@ -1839,6 +2009,9 @@ HTML_TEMPLATE = """<!doctype html>
         render_svodka(result.answers || []);
       } catch (error) {
         showMessage("error", error.message || String(error));
+      } finally {
+        saveButton.disabled = false;
+        saveButton.removeAttribute("aria-busy");
       }
     }
 

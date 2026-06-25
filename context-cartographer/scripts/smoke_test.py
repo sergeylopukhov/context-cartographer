@@ -169,9 +169,18 @@ def main() -> int:
             html = server.build_html(loaded)
             assert_true('<html lang="ru">' in html, "Russian HTML language attribute missing")
             for expected in (
+                'class="app-shell"',
+                'class="intro-panel"',
+                'class="questionnaire-panel"',
+                'class="meta-card"',
+            ):
+                assert_true(expected in html, f"transferred questionnaire shell markup missing: {expected}")
+            for expected in (
                 "Сохранить ответы",
                 "Очистить локальный черновик",
                 "Сводка ответов",
+                "Локальная анкета",
+                "Ответы сохраняются локально",
                 "Другое / свой вариант",
                 "Не уверен / порекомендуй сам",
                 "Комментарий к ответу",
@@ -225,6 +234,8 @@ def main() -> int:
                 "Save Answers",
                 "Clear Local Draft",
                 "Answer Summary",
+                "Local Questionnaire",
+                "Answers Are Saved Locally",
                 "Other / my own option",
                 "Not sure / let the agent recommend",
                 "Comment",
