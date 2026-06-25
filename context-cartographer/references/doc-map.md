@@ -18,7 +18,7 @@ Use this file to choose a minimal, profile-based documentation set and decide wh
 
 Create or maintain these files when the project has durable documentation needs. When setting up a documentation system, do not skip any minimal core file except `docs/code_rules.md` when the user declines code-rules mode.
 
-- `AGENTS.md`: short root router for agent behavior and documentation routing.
+- Root agent instruction file: short router for agent behavior and documentation routing. Use `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or multiple thin adapters for multi-agent projects.
 - `docs/architecture.md`: map of documentation files, reading rules, and architecture ownership.
 - `docs/architecture-overview.md`: stack, repository layout, runtime shape, important folders, and system boundaries.
 - `docs/architecture-quality-risks.md`: test commands, verification rules, known risks, fragile areas, and technical debt.
@@ -76,11 +76,11 @@ Suggest these only when the project actually needs them:
 - Put staging, test-data setup, SSH access notes, import/export flow, public URLs, WordPress setup, logs, rollback, queues, scheduler, and monitoring in `docs/DEPLOYMENT.md`.
 - Put operator workflows, support actions, admin panel usage, moderation, backoffice checks, and risky manual actions in `docs/ADMIN.md`.
 - Put code-editing behavior in `docs/code_rules.md` only when the user selects code-rules mode.
-- Ensure root `AGENTS.md` states the selected code-rules mode. If enabled, tell agents to read `docs/code_rules.md` before every code or code-adjacent edit. If declined, state that no dedicated code-rules file is used.
-- Ensure root `AGENTS.md` states the selected documentation maintenance mode: automatic durable maintenance or request-only maintenance.
+- Ensure each selected root agent instruction file states the target agent, selected code-rules mode, and selected documentation maintenance mode.
+- If code-rules mode is enabled, tell agents to read `docs/code_rules.md` before every code or code-adjacent edit. If declined, state that no dedicated code-rules file is used.
 - Do not infer code-rules mode from project type, existing docs, or "let the agent decide"; using `docs/code_rules.md` requires explicit user selection.
 - Do not infer documentation maintenance mode from project type, existing docs, or "let the agent decide"; automatic durable maintenance requires explicit user selection.
-- Put local-only documentation privacy rules in `AGENTS.md`, `docs/architecture.md`, and the repo's VCS ignore file.
+- Put local-only documentation privacy rules in each selected root agent instruction file, `docs/architecture.md`, and the repo's VCS ignore file.
 - Put secret-handling and access-control policy in `docs/SECURITY.md` when that file exists.
 - Put temporary task plans outside durable docs unless the user explicitly wants them preserved.
 - Do not write routine task notes, transient status, or obvious implementation details into durable docs.
@@ -88,6 +88,7 @@ Suggest these only when the project actually needs them:
 ## Creation Rules
 
 - Create the smallest useful set first.
+- Choose the root agent instruction target before creating or replacing root instructions: `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or thin adapters for multiple selected agents. Ask when the target is ambiguous.
 - Ask for code-rules mode before creating root agent instructions unless the user already specified it. This is a blocking gate.
 - Include `docs/code_rules.md` in the minimal documentation core only when the user selects code-rules mode.
 - Ask for the documentation maintenance mode before creating root agent instructions unless the user already specified it. This is a blocking gate, not a recommendation.
@@ -109,6 +110,9 @@ Default ignore patterns when `docs/` is owned by project-memory docs:
 ```gitignore
 # Local agent/project documentation
 AGENTS.md
+CLAUDE.md
+.cursor/rules/context-cartographer.mdc
+.cursorrules
 docs/
 .project-questionnaire/
 ```

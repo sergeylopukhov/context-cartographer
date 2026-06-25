@@ -1,29 +1,29 @@
 ---
 name: context-cartographer
-description: AGENTS.md, CLAUDE.md, Cursor rules, architecture.md, project docs, docs/, and documentation map setup, audit, cleanup, and maintenance for new and existing repositories. Use when an AI coding agent needs to create or update agent instructions, classify project type before choosing docs, split oversized architecture docs, route documentation ownership, or decide which project docs to read or update for UI apps, websites, SaaS, APIs, bots, automations, libraries, content projects, ecommerce, payments, data/ML, infra/devops, mobile apps, and internal tools. Also use for short documentation requests such as "доделай документацию", "создай нормальную доку", "приведи docs в порядок", "почини AGENTS.md", or "настрой документацию проекта".
+description: AGENTS.md, CLAUDE.md, Cursor rules, architecture.md, project docs, docs/, and documentation map setup, audit, cleanup, and maintenance for new and existing repositories. Use when an AI coding agent needs to create or update agent instructions, classify project type before choosing docs, split oversized architecture docs, route documentation ownership, or decide which project docs to read or update for UI apps, websites, SaaS, APIs, bots, automations, libraries, content projects, ecommerce, payments, data/ML, infra/devops, mobile apps, and internal tools. Also use for short documentation requests such as "доделай документацию", "создай нормальную доку", "приведи docs в порядок", "почини AGENTS.md", "почини CLAUDE.md", or "настрой документацию проекта".
 ---
 
 # Context Cartographer
 
 Use this skill to build a small, durable documentation system that helps future agents load the right context at the right time.
 
-Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documentation map over one large all-purpose architecture file.
+Keep root agent instruction files short. Use the correct root file for the target agent: `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or multiple thin adapters for multi-agent projects. Put project documentation in `docs/`. Prefer a documentation map over one large all-purpose architecture file.
 
 ## Core Rules
 
 - Short broad prompts are enough. If the user asks to create, finish, fix, improve, clean up, or set up project documentation without details, run the full documentation workflow from a read-only scan; do not ask the user to provide a long prompt.
 - Inspect the repository read-only before proposing documentation changes.
 - Ask when the project goal, documentation ownership, or target file is unclear.
-- In generated `AGENTS.md`, make conversation-only the default for questions, analysis, brainstorming, and project discussion; require explicit user intent before edits.
-- Never overwrite an existing `AGENTS.md` or docs file without explicit user approval.
+- In generated root agent instruction files, make conversation-only the default for questions, analysis, brainstorming, and project discussion; require explicit user intent before edits.
+- Never overwrite an existing root agent instruction file or docs file without explicit user approval.
 - Preserve project-specific rules and edit existing files surgically.
 - Classify the project profile before choosing which docs to create.
 - Create only documentation files that the project needs now.
 - Before creating a project documentation system, ask whether agents should use a dedicated code-writing rules file.
-- If the user selects code-rules mode, create or maintain `docs/code_rules.md` and route `AGENTS.md` to it for code and code-adjacent edits.
+- If the user selects code-rules mode, create or maintain `docs/code_rules.md` and route the selected root agent instruction file(s) to it for code and code-adjacent edits.
 - If the user declines code-rules mode, do not create `docs/code_rules.md` and do not route agents to it; preserve any existing `docs/code_rules.md` unless the user explicitly approves deletion or cleanup.
-- Distinguish initial documentation creation from ongoing documentation maintenance: create or migrate docs only with user intent, but once a docs system exists, encode the selected maintenance mode in `AGENTS.md`, `docs/architecture.md`, and `docs/code_rules.md` when code-rules mode is enabled.
-- Encode the selected code-rules mode in `AGENTS.md` and `docs/architecture.md`.
+- Distinguish initial documentation creation from ongoing documentation maintenance: create or migrate docs only with user intent, but once a docs system exists, encode the selected maintenance mode in the selected root agent instruction file(s), `docs/architecture.md`, and `docs/code_rules.md` when code-rules mode is enabled.
+- Encode the selected agent target and code-rules mode in the selected root agent instruction file(s) and `docs/architecture.md`.
 - Never infer documentation maintenance mode from the project shape, existing docs, or a broad prompt. `automatic durable maintenance` requires explicit user selection.
 - Never infer code-rules mode from the project shape, existing docs, or a broad prompt. Using `docs/code_rules.md` requires explicit user selection on first setup.
 - Never leave documentation maintenance mode as a placeholder in generated files; write the selected mode explicitly.
@@ -36,12 +36,24 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - Match questionnaire language to the user/project language. For Sergey or Russian prompts, write `language: "ru"` in `questions.json`; for English users/projects, write `language: "en"`. If unclear, use the language of the user's prompt.
 - Verify links and stale references after changing documentation.
 
+## Agent Targets
+
+Choose the root agent instruction file from the target environment before creating or replacing root instructions:
+
+- Codex: create or update `AGENTS.md`.
+- Claude Code: create or update `CLAUDE.md`; do not create `AGENTS.md` just for Claude.
+- Cursor: create or update `.cursor/rules/context-cartographer.mdc`; use `.cursorrules` only when the repo already uses that legacy file.
+- Multi-agent: create thin adapter files for each selected target and route all of them to the same `docs/architecture.md` map.
+
+Infer the target only when it is explicit from the user's request, the running agent surface, or an existing dominant instruction file. If ambiguous, ask which target to support before creating or replacing root instructions.
+
 ## Mandatory Decision Gates
 
 - For a broad short prompt, include all missing decisions in the normal workflow instead of asking the user to rewrite the request. Use the bundled questionnaire when there are more than two decisions.
 - For a broad short prompt, run the bundled questionnaire after the read-only scan and before any documentation edits unless the prompt already explicitly answers all decision gates.
-- Documentation maintenance mode is a blocking gate before writing or replacing `AGENTS.md`, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
-- Code-rules mode is a blocking gate before writing or replacing `AGENTS.md`, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
+- Agent target is a blocking gate before writing or replacing root agent instruction files unless the target is explicit from the user's request, running agent surface, or existing dominant instruction file.
+- Documentation maintenance mode is a blocking gate before writing or replacing root agent instruction files, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
+- Code-rules mode is a blocking gate before writing or replacing root agent instruction files, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
 - After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
 - The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let the agent decide.
 - Continue without the cleanup strategy question only when the user already clearly said to decide autonomously, migrate everything, or skip questions. This delegation applies only to cleanup/migration strategy, not to documentation maintenance mode or code-rules mode.
@@ -57,7 +69,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 ## Reference Files
 
 - Read `references/doc-map.md` before deciding which docs should exist or where information belongs.
-- Read `references/file-templates.md` before creating new `AGENTS.md` or `docs/*.md` files.
+- Read `references/file-templates.md` before creating new root agent instruction files or `docs/*.md` files.
 - Read `references/audit-checklist.md` before auditing an existing repository.
 - Read `references/cleanup-rules.md` before splitting, merging, deleting, or renaming documentation.
 - Read `references/question_schema.md` before creating a questionnaire JSON.
@@ -70,6 +82,7 @@ Use the bundled questionnaire instead of long numbered chat questions when profi
 For broad short prompts, the questionnaire should normally include:
 
 - documentation cleanup strategy for existing docs;
+- agent target: Codex, Claude Code, Cursor, or multi-agent;
 - code-rules mode;
 - documentation maintenance mode;
 - project profile and primary workflow;
@@ -94,10 +107,10 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 ## New Project Workflow
 
 1. Inspect the initial project structure and existing files.
-2. Identify project profile, stack, audience, language policy, whether the user requested automatic setup, code-rules mode, and documentation maintenance mode.
+2. Identify project profile, stack, audience, language policy, target agent surface, whether the user requested automatic setup, code-rules mode, and documentation maintenance mode.
 3. For broad short prompts, run the bundled questionnaire before edits unless all decision gates were explicitly answered in the prompt.
 4. Ask concise questions if core facts are missing; use the bundled questionnaire for multi-question decisions.
-5. Create a short root `AGENTS.md` router only when absent or explicitly approved.
+5. Create short root agent instruction file(s) for the selected target only when absent or explicitly approved.
 6. Create `docs/architecture.md` as the documentation map.
 7. Create the full minimal core docs plus only the profile docs that match the project; include `docs/code_rules.md` only if the user selected code-rules mode.
 8. Add created project-memory docs to `.gitignore` or the repo's VCS ignore file unless the user explicitly wants them tracked.
@@ -107,7 +120,7 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 ## Existing Project Workflow
 
 1. List files with `rg --files` and targeted reads.
-2. Detect existing `AGENTS.md`, `docs/`, README files, architecture docs, product/design/deployment docs, and content docs.
+2. Detect existing root agent instruction files, `docs/`, README files, architecture docs, product/design/deployment docs, and content docs.
 3. Identify stale references, duplicated facts, oversized docs, missing owners, and files outside the expected documentation structure.
 4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let the agent decide.
 5. If the user chooses "let the agent decide", read existing docs as project context, preserve durable facts, resolve conflicts with `TODO: clarify` or questions, and migrate docs into this skill's minimal-core/profile-based structure.
@@ -132,7 +145,7 @@ Use cleanup mode when docs are too large, duplicated, stale, or mixed by topic.
 
 ## Documentation Defaults
 
-- Store Markdown documentation in `docs/`, except root `AGENTS.md`.
+- Store Markdown documentation in `docs/`, except selected root agent instruction files such as `AGENTS.md`, `CLAUDE.md`, `.cursor/rules/*.mdc`, or `.cursorrules`.
 - Do not move public repo docs such as `README.md`, `LICENSE`, `CONTRIBUTING.md`, changelogs, or user-facing content into `docs/` automatically.
 - Keep project-memory docs local-only by default; do not commit, push, upload, publish, or deploy them without explicit user approval.
 - Keep project docs in English by default.

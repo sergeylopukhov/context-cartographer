@@ -6,16 +6,27 @@ Resolve both code-rules mode and documentation maintenance mode before writing g
 
 ## Contents
 
-- Minimal core: `AGENTS.md`, `docs/architecture.md`, `docs/architecture-overview.md`, `docs/architecture-quality-risks.md`
+- Minimal core: selected root agent instruction file(s), `docs/architecture.md`, `docs/architecture-overview.md`, `docs/architecture-quality-risks.md`
 - Selected core: `docs/code_rules.md` only when the user chooses to use a dedicated code-writing rules file.
 - Profile docs: `docs/architecture-frontend.md`, `docs/architecture-backend-data.md`, `docs/PRODUCT.md`, `docs/DESIGN.md`, `docs/DEPLOYMENT.md`
 - Conditional docs: `docs/SECURITY.md`, `docs/architecture-payments.md`, `docs/API.md`, `docs/INTEGRATIONS.md`, `docs/CONTENT-SEO.md`, `docs/advertising.md`, `docs/ADMIN.md`, `docs/GLOSSARY.md`
 
-## AGENTS.md
+## Root Agent Instruction File
+
+Create the file that matches the selected target:
+
+- Codex: `AGENTS.md`
+- Claude Code: `CLAUDE.md`
+- Cursor: `.cursor/rules/context-cartographer.mdc`
+- Legacy Cursor only when already present: `.cursorrules`
+- Multi-agent: one thin adapter per selected target.
+
+Use the same body shape for each target, adjusted only for the agent name and file format. For Cursor `.mdc`, include the required frontmatter before the Markdown body.
 
 ```markdown
 # Project Instructions
 
+- Agent target: TODO: replace with `Codex`, `Claude Code`, `Cursor`, or `multi-agent adapter`.
 - Reply in the project/user's default language unless asked otherwise.
 - Treat questions, analysis, brainstorming, and project discussion as conversation-only by default. Do not edit files, run mutating commands, or make code changes unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
 - If the user's intent is ambiguous, ask whether they want discussion only or actual file changes before editing.
@@ -61,15 +72,17 @@ This file is a map, not the full architecture record. Read it when a task affect
 ## Local-Only Policy
 
 - Project-memory docs are local-only by default.
-- Keep `AGENTS.md`, `docs/`, and `.project-questionnaire/` in `.gitignore` or the repo's VCS ignore file unless the user explicitly wants docs tracked.
+- Keep selected root agent instruction files, `docs/`, and `.project-questionnaire/` in `.gitignore` or the repo's VCS ignore file unless the user explicitly wants docs tracked.
 - If `docs/` is public/user-facing, ask before ignoring it broadly.
 
 ## Update Rules
 
 - Write new facts only to the most specific owner file.
 - Do not duplicate durable facts across files.
-- Code-rules mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
-- Documentation maintenance mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
+- Agent target: TODO: replace with the selected target before writing this file.
+- Root agent instruction files: TODO: list selected files such as `AGENTS.md`, `CLAUDE.md`, or `.cursor/rules/context-cartographer.mdc`.
+- Code-rules mode: TODO: replace with the mode selected in root agent instructions before writing this file.
+- Documentation maintenance mode: TODO: replace with the mode selected in root agent instructions before writing this file.
 - Under `automatic durable maintenance`, update docs only for durable project changes and do it in the same task; do not record routine implementation notes, transient task status, or obvious edits.
 - Under `request-only maintenance`, do not edit docs unless explicitly asked, but flag likely stale docs in the final response.
 - If no owner file fits, ask before creating one.
@@ -83,6 +96,9 @@ Use this snippet only when `docs/` is the private project-memory documentation f
 ```gitignore
 # Local agent/project documentation
 AGENTS.md
+CLAUDE.md
+.cursor/rules/context-cartographer.mdc
+.cursorrules
 docs/
 .project-questionnaire/
 ```
@@ -208,7 +224,7 @@ Treat agent-written code like code from a new contributor: useful, but not trust
 
 ## 7. Durable Documentation
 
-- Documentation maintenance mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
+- Documentation maintenance mode: TODO: replace with the mode selected in root agent instructions before writing this file.
 - Under `automatic durable maintenance`, after any completed work that changes deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, setup, architecture, data model, public interfaces, agent workflow, or documentation ownership, check whether `docs/DEPLOYMENT.md`, `docs/ADMIN.md`, `docs/architecture.md`, `docs/SECURITY.md`, or another owner doc must be updated. If yes, update it in the same task before the final response; if not, explicitly say that no durable docs update was needed.
 - Under `request-only maintenance`, update docs only when the user explicitly asks, but mention if completed work likely made docs stale.
 - Do not record routine implementation notes, transient task status, or obvious edits.

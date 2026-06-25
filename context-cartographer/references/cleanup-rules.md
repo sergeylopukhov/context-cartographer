@@ -86,7 +86,7 @@ Create a new owner file when:
 ## What Not To Do
 
 - Do not create `README.md`, `CHANGELOG.md`, or extra guide files inside a skill unless explicitly required.
-- Do not turn `AGENTS.md` into a full project manual.
+- Do not turn root agent instruction files such as `AGENTS.md`, `CLAUDE.md`, or Cursor rules into full project manuals.
 - Do not keep long checklists in `docs/architecture.md`.
 - Do not move public repo docs or user-facing content files into `docs/` merely because they are Markdown.
 - Do not document secrets, private keys, tokens, or production credentials.

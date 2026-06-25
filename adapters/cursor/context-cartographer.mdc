@@ -1,5 +1,5 @@
 ---
-description: "Use context-cartographer for AGENTS.md, architecture.md, CLAUDE.md, Cursor rules, project docs, docs/, documentation maps, local-only agent memory, documentation setup, audit, cleanup, and migration."
+description: "Use context-cartographer for Cursor rules, AGENTS.md, CLAUDE.md, architecture.md, project docs, docs/, documentation maps, local-only agent memory, documentation setup, audit, cleanup, and migration."
 globs: []
 alwaysApply: false
 ---
@@ -8,7 +8,8 @@ alwaysApply: false
 
 Use this rule as a thin adapter. Prefer the installed skill at `.cursor/skills/context-cartographer/SKILL.md` when available.
 
-- For project documentation setup, audit, cleanup, `AGENTS.md`, `architecture.md`, docs maps, or local agent-memory docs, use the `context-cartographer` skill workflow.
+- For project documentation setup, audit, cleanup, Cursor rules, `architecture.md`, docs maps, or local agent-memory docs, use the `context-cartographer` skill workflow.
+- In Cursor projects, prefer `.cursor/rules/context-cartographer.mdc` as the root agent instruction file. Do not create `AGENTS.md` or `CLAUDE.md` unless the user also wants Codex, Claude Code, or multi-agent support.
 - If the skill is not installed, ask the user to install it into `.cursor/skills/context-cartographer/` before doing broad documentation migration.
 - Treat short broad prompts such as "доделай документацию" or "bring docs into shape" as a request to run the full context-cartographer workflow; do not require a long prompt.
 - Do not infer documentation maintenance mode; automatic durable maintenance requires explicit user selection.

@@ -32,7 +32,7 @@ It gives an AI a reliable map of the repository: where the important code lives,
 
 The skill creates only the documentation the project needs:
 
-- `AGENTS.md` — a short routing file for AI agents.
+- Root agent instruction file — `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, or `.cursor/rules/context-cartographer.mdc` for Cursor.
 - `docs/architecture.md` — the documentation map.
 - `docs/architecture-overview.md` — stack, layout, and entry points.
 - `docs/architecture-quality-risks.md` — tests, checks, risks, and fragile areas.
@@ -116,7 +116,7 @@ Context Cartographer — скилл, который создаёт коротк�
 
 Скилл создаёт только те файлы, которые нужны проекту:
 
-- `AGENTS.md` — короткий маршрутный файл для ИИ-агентов.
+- Корневой файл инструкций для ИИ: `AGENTS.md` для Codex, `CLAUDE.md` для Claude Code или `.cursor/rules/context-cartographer.mdc` для Cursor.
 - `docs/architecture.md` — карта документации.
 - `docs/architecture-overview.md` — стек, структура и важные точки входа.
 - `docs/architecture-quality-risks.md` — тесты, проверки, риски и хрупкие места.

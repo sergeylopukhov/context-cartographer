@@ -2,7 +2,8 @@
 
 Use this adapter only as a small persistent pointer. Keep the full workflow in the `context-cartographer` skill.
 
-- For project documentation setup, audit, cleanup, `AGENTS.md`, `architecture.md`, docs maps, or local agent-memory docs, use `/context-cartographer` when the skill is installed.
+- For project documentation setup, audit, cleanup, `CLAUDE.md`, `architecture.md`, docs maps, or local agent-memory docs, use `/context-cartographer` when the skill is installed.
+- In Claude Code projects, prefer `CLAUDE.md` as the root agent instruction file. Do not create `AGENTS.md` unless the user also wants Codex or multi-agent support.
 - If the skill is not installed, ask the user to install it into `~/.claude/skills/context-cartographer/` or `.claude/skills/context-cartographer/` before doing broad documentation migration.
 - Treat short broad prompts such as "доделай документацию" or "bring docs into shape" as a request to run the full context-cartographer workflow; do not require a long prompt.
 - Do not infer documentation maintenance mode; automatic durable maintenance requires explicit user selection.
