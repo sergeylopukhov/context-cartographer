@@ -12,12 +12,22 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 SCRIPT_PATH = Path(__file__).with_name("questionnaire_server.py")
+UPDATE_SCRIPT_PATH = Path(__file__).with_name("check_update.py")
 
 
 def load_server_module():
     spec = importlib.util.spec_from_file_location("questionnaire_server", SCRIPT_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Could not load {SCRIPT_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_update_module():
+    spec = importlib.util.spec_from_file_location("check_update", UPDATE_SCRIPT_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load {UPDATE_SCRIPT_PATH}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -40,6 +50,15 @@ def main() -> int:
     try:
         server = load_server_module()
         pass_line("questionnaire_server.py imports cleanly")
+
+        updater = load_update_module()
+        local_version = updater.read_local_version()
+        assert_true(local_version, "local VERSION was not read")
+        assert_true(updater.is_newer("0.1.1", "0.1.0"), "newer patch version was not detected")
+        assert_true(not updater.is_newer("0.1.0", "0.1.0"), "same version was treated as newer")
+        assert_true(updater.should_check({}, 7, False), "empty cache should trigger update check")
+        assert_true(not updater.should_check({"checked_at": updater.time.time()}, 7, False), "fresh cache should skip update check")
+        pass_line("check_update.py imports and compares versions")
 
         valid_questionnaire = {
             "title": "Тестовая анкета",

@@ -36,6 +36,19 @@ Keep root agent instruction files short. Use the correct root file for the targe
 - Match questionnaire language to the user/project language. For Sergey or Russian prompts, write `language: "ru"` in `questions.json`; for English users/projects, write `language: "en"`. If unclear, use the language of the user's prompt.
 - Verify links and stale references after changing documentation.
 
+## Update Check
+
+At the start of a context-cartographer workflow, check for updates no more than once every 7 days:
+
+```bash
+python3 <this-skill>/scripts/check_update.py --json
+```
+
+- If the check reports `update_available: true`, tell the user that a newer `context-cartographer` version is available and ask whether to update before continuing.
+- Never update automatically without explicit user approval.
+- If the check fails because network, GitHub, Python, or the installer is unavailable, continue the workflow and mention the failed update check only if it matters.
+- When publishing a GitHub update that installed users should be prompted about, bump `VERSION` in the skill folder.
+
 ## Agent Targets
 
 Choose the root agent instruction file from the target environment before creating or replacing root instructions:
