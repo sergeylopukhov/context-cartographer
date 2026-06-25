@@ -12,7 +12,7 @@ import sys
 import time
 from pathlib import Path
 from urllib.error import URLError
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 
 DEFAULT_REPO = "sergeylopukhov/context-cartographer"
@@ -21,6 +21,12 @@ DEFAULT_PATH = "context-cartographer"
 DEFAULT_INTERVAL_DAYS = 1
 DEFAULT_TIMEOUT = 8
 VERSION_RE = re.compile(r"^\d+(?:\.\d+){0,3}(?:[-+][A-Za-z0-9_.-]+)?$")
+REQUEST_HEADERS = {
+    "Accept": "application/vnd.github+json",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+    "User-Agent": "context-cartographer-update-check",
+}
 
 
 class UpdateCheckError(RuntimeError):
@@ -57,7 +63,8 @@ def fetch_remote_version(repo: str, branch: str, path: str, timeout: int) -> str
 def fetch_remote_version_from_raw(repo: str, branch: str, path: str, timeout: int, api_error: str) -> str:
     url = raw_version_url(repo, branch, path)
     try:
-        with urlopen(url, timeout=timeout) as response:
+        request = Request(url, headers=REQUEST_HEADERS)
+        with urlopen(request, timeout=timeout) as response:
             body = response.read(200).decode("utf-8", errors="replace")
     except URLError as exc:
         raise UpdateCheckError(f"Could not fetch remote VERSION from API or raw. API: {api_error}. Raw: {exc}") from exc
@@ -71,7 +78,8 @@ def fetch_remote_version_from_api(repo: str, branch: str, path: str, timeout: in
     clean_path = path.strip("/")
     url = f"https://api.github.com/repos/{repo}/contents/{clean_path}/VERSION?ref={branch}"
     try:
-        with urlopen(url, timeout=timeout) as response:
+        request = Request(url, headers=REQUEST_HEADERS)
+        with urlopen(request, timeout=timeout) as response:
             data = json.loads(response.read().decode("utf-8", errors="replace"))
     except (URLError, json.JSONDecodeError) as exc:
         raise UpdateCheckError(f"Could not fetch remote VERSION from GitHub API: {exc}") from exc
