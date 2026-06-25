@@ -18,7 +18,7 @@ from urllib.request import urlopen
 DEFAULT_REPO = "sergeylopukhov/context-cartographer"
 DEFAULT_BRANCH = "main"
 DEFAULT_PATH = "context-cartographer"
-DEFAULT_INTERVAL_DAYS = 7
+DEFAULT_INTERVAL_DAYS = 1
 DEFAULT_TIMEOUT = 8
 VERSION_RE = re.compile(r"^\d+(?:\.\d+){0,3}(?:[-+][A-Za-z0-9_.-]+)?$")
 

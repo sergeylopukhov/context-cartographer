@@ -38,7 +38,7 @@ Keep root agent instruction files short. Use the correct root file for the targe
 
 ## Update Check
 
-At the start of a context-cartographer workflow, check for updates no more than once every 7 days:
+At the start of a context-cartographer workflow, check for updates no more than once per day:
 
 ```bash
 python3 <this-skill>/scripts/check_update.py --json
