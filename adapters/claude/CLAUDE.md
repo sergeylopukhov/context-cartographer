@@ -6,8 +6,9 @@ Use this adapter only as a small persistent pointer. Keep the full workflow in t
 - If the skill is not installed, ask the user to install it into `~/.claude/skills/context-cartographer/` or `.claude/skills/context-cartographer/` before doing broad documentation migration.
 - Treat short broad prompts such as "доделай документацию" or "bring docs into shape" as a request to run the full context-cartographer workflow; do not require a long prompt.
 - Do not infer documentation maintenance mode; automatic durable maintenance requires explicit user selection.
+- Do not infer code-rules mode; using `docs/code_rules.md` for code and code-adjacent edits requires explicit user selection.
 - Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
 - Before changing existing docs, scan read-only and show the proposed docs map: current docs, topic owners, and planned create/update/delete actions.
-- Before code or code-adjacent edits, read `docs/code_rules.md` when it exists.
+- Before code or code-adjacent edits, read `docs/code_rules.md` only when root instructions enable code-rules mode.
 - When root instructions define automatic durable documentation maintenance, update the relevant owner docs in the same task after deployment, staging, test-data, SSH, import/export, public URL, WordPress setup, operator-workflow, architecture, or public-interface changes. If automatic mode applies and no docs update is needed, say so in the final response.
 - Keep project-memory docs local-only unless the user explicitly asks to track, publish, upload, or deploy them.

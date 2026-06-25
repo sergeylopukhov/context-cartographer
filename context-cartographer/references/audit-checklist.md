@@ -36,8 +36,10 @@ Classify each durable Markdown file:
 
 - Is `AGENTS.md` short enough to act as a router?
 - Does `AGENTS.md` distinguish conversation-only requests from explicit edit/implementation requests?
-- Does `AGENTS.md` require reading `docs/code_rules.md` before code and code-adjacent edits?
-- Does `docs/code_rules.md` exist when the project has a docs system?
+- Does `AGENTS.md` state the selected code-rules mode?
+- If code-rules mode is enabled, does `AGENTS.md` require reading `docs/code_rules.md` before code and code-adjacent edits?
+- If code-rules mode is disabled, does `AGENTS.md` avoid routing agents to `docs/code_rules.md`?
+- Does `docs/code_rules.md` exist only when the user explicitly selected code-rules mode or when the user chose to preserve an existing file?
 - Are project-memory docs ignored by VCS and treated as local-only unless the user explicitly wants them tracked?
 - Is `docs/architecture.md` a map rather than a large mixed architecture dump?
 - Are architecture facts split by topic?
@@ -57,6 +59,7 @@ Classify each durable Markdown file:
 Ask before acting when:
 
 - existing docs, README files, or project instruction files are present and the prompt did not explicitly delegate cleanup decisions; first ask whether to keep as-is, audit only, migrate after approval, or let the agent decide;
+- root agent instructions are being created or replaced and the user has not selected whether to use `docs/code_rules.md` for code and code-adjacent edits;
 - the goal is unclear;
 - there are multiple plausible owner files;
 - no suitable owner file exists;

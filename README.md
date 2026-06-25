@@ -2,7 +2,7 @@
 
 `context-cartographer` is an Agent Skill for Codex, Claude Code, and Cursor. It creates and maintains lean project documentation that helps AI coding agents understand a repository without rereading the whole codebase every time.
 
-It builds a small local documentation system for a project: a short `AGENTS.md`, a documentation map, code-editing rules, and only the profile-specific docs the project actually needs.
+It builds a small local documentation system for a project: a short `AGENTS.md`, a documentation map, optional code-editing rules, and only the profile-specific docs the project actually needs.
 
 ## What It Does
 
@@ -13,6 +13,7 @@ It builds a small local documentation system for a project: a short `AGENTS.md`,
 - Uses existing docs as project context when the user delegates cleanup decisions.
 - Keeps agent documentation local-only by default and adds it to `.gitignore`.
 - Makes agent instruction files distinguish discussion from actual edit requests, so the agent does not start changing files just because the user is thinking out loud.
+- Asks on first setup whether agents should use a dedicated `docs/code_rules.md` file for future code and code-adjacent edits.
 - Asks how documentation should be maintained after setup: automatically for durable project changes, or only on explicit request.
 - Updates docs later only for durable changes, not routine task notes.
 
@@ -50,7 +51,7 @@ Minimal core:
 - `docs/architecture.md` - documentation map and reading rules.
 - `docs/architecture-overview.md` - stack, repository layout, important entry points.
 - `docs/architecture-quality-risks.md` - tests, verification, known risks.
-- `docs/code_rules.md` - code-editing rules for agentic coding.
+- `docs/code_rules.md` - optional code-editing rules for agentic coding, created only when selected on first setup.
 
 Profile-based docs are created only when needed:
 
@@ -95,7 +96,12 @@ Questionnaire UI language is localized. `questions.json` can set `language: "en"
 
 ## Documentation Maintenance Mode
 
-Initial docs creation and ongoing docs maintenance are separate decisions.
+Initial docs creation, code-rules usage, and ongoing docs maintenance are separate decisions.
+
+Before writing root agent instructions, the skill must ask whether to use a dedicated code-writing rules file:
+
+- use code rules file: create or maintain `docs/code_rules.md` and route code/code-adjacent edits through it;
+- do not use code rules file: do not create or route to `docs/code_rules.md`.
 
 The skill should not silently create or migrate documentation in an empty or unclear project. But when it creates root agent instructions, it must ask how future documentation should be maintained:
 
@@ -104,7 +110,7 @@ The skill should not silently create or migrate documentation in an empty or unc
 
 `automatic durable maintenance` is explicit opt-in. The skill must not choose it just because the project already has docs or because the user asked for a recommendation.
 
-The selected mode is written into `AGENTS.md`, `docs/architecture.md`, and `docs/code_rules.md`.
+The selected modes are written into `AGENTS.md` and `docs/architecture.md`; maintenance mode is also written into `docs/code_rules.md` when that file is enabled.
 
 ## Local-Only By Default
 

@@ -19,9 +19,13 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - Preserve project-specific rules and edit existing files surgically.
 - Classify the project profile before choosing which docs to create.
 - Create only documentation files that the project needs now.
-- When creating a project documentation system, always include `docs/code_rules.md` and route `AGENTS.md` to it for code and code-adjacent edits.
-- Distinguish initial documentation creation from ongoing documentation maintenance: create or migrate docs only with user intent, but once a docs system exists, encode the selected maintenance mode in `AGENTS.md` and `docs/code_rules.md`.
+- Before creating a project documentation system, ask whether agents should use a dedicated code-writing rules file.
+- If the user selects code-rules mode, create or maintain `docs/code_rules.md` and route `AGENTS.md` to it for code and code-adjacent edits.
+- If the user declines code-rules mode, do not create `docs/code_rules.md` and do not route agents to it; preserve any existing `docs/code_rules.md` unless the user explicitly approves deletion or cleanup.
+- Distinguish initial documentation creation from ongoing documentation maintenance: create or migrate docs only with user intent, but once a docs system exists, encode the selected maintenance mode in `AGENTS.md`, `docs/architecture.md`, and `docs/code_rules.md` when code-rules mode is enabled.
+- Encode the selected code-rules mode in `AGENTS.md` and `docs/architecture.md`.
 - Never infer documentation maintenance mode from the project shape, existing docs, or a broad prompt. `automatic durable maintenance` requires explicit user selection.
+- Never infer code-rules mode from the project shape, existing docs, or a broad prompt. Using `docs/code_rules.md` requires explicit user selection on first setup.
 - Never leave documentation maintenance mode as a placeholder in generated files; write the selected mode explicitly.
 - Treat project-memory docs as local-only by default: add them to `.gitignore` or the repo's VCS ignore file, and do not commit, push, upload, publish, or deploy them unless the user explicitly asks.
 - If existing docs are present, ask what to do with them before rewriting, deleting, or moving them; when the user delegates the decision, use those docs as project context and migrate durable facts into the skill's documentation structure.
@@ -37,9 +41,13 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - For a broad short prompt, include all missing decisions in the normal workflow instead of asking the user to rewrite the request. Use the bundled questionnaire when there are more than two decisions.
 - For a broad short prompt, run the bundled questionnaire after the read-only scan and before any documentation edits unless the prompt already explicitly answers all decision gates.
 - Documentation maintenance mode is a blocking gate before writing or replacing `AGENTS.md`, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
+- Code-rules mode is a blocking gate before writing or replacing `AGENTS.md`, `docs/architecture.md`, or `docs/code_rules.md`. Do not choose it for the user.
 - After the initial read-only scan, if any existing docs, README files, `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, or other project instruction files exist and the user's prompt did not explicitly delegate cleanup decisions, stop and ask which strategy to use before proposing edits or changing files.
 - The strategy question must offer these choices: keep as-is, audit only, migrate after approval, or let the agent decide.
-- Continue without the cleanup strategy question only when the user already clearly said to decide autonomously, migrate everything, or skip questions. This delegation applies only to cleanup/migration strategy, not to documentation maintenance mode.
+- Continue without the cleanup strategy question only when the user already clearly said to decide autonomously, migrate everything, or skip questions. This delegation applies only to cleanup/migration strategy, not to documentation maintenance mode or code-rules mode.
+- Before creating a new documentation system or replacing root agent instructions, ask for code-rules mode unless the user already specified it:
+  - use code rules file: create or maintain `docs/code_rules.md` and require agents to read it before code and code-adjacent edits;
+  - do not use code rules file: do not create or route to `docs/code_rules.md`.
 - Before creating a new documentation system or replacing root agent instructions, ask for a documentation maintenance mode unless the user already specified it:
   - automatic durable maintenance: after completed code or code-adjacent work, update the relevant durable docs in the same task when the work changes durable project knowledge;
   - request-only maintenance: update docs only when the user explicitly asks, but mention when docs may now be stale.
@@ -61,12 +69,15 @@ Use the bundled questionnaire instead of long numbered chat questions when profi
 For broad short prompts, the questionnaire should normally include:
 
 - documentation cleanup strategy for existing docs;
+- code-rules mode;
 - documentation maintenance mode;
 - project profile and primary workflow;
 - whether project-memory docs should stay local-only or be tracked/published;
 - any unclear profile-specific docs such as deployment, admin, security, API, integrations, content, product, or design.
 
 The documentation maintenance mode question must be required single-choice with only the real modes as choices, no default answer, no `recommended` value, and no "Not sure/recommend" option. The user must actively select `automatic durable maintenance` or `request-only maintenance`.
+
+The code-rules mode question must also be required single-choice with only the real modes as choices, no default answer, no `recommended` value, and no "Not sure/recommend" option. The user must actively select whether to use `docs/code_rules.md` for future code and code-adjacent edits.
 
 1. Create `.context-cartographer-questionnaire/questions.json` in the target project using `references/question_schema.md`.
    - Set top-level `language` to `ru` or `en` before running the server.
@@ -81,12 +92,12 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 ## New Project Workflow
 
 1. Inspect the initial project structure and existing files.
-2. Identify project profile, stack, audience, language policy, whether the user requested automatic setup, and the documentation maintenance mode.
+2. Identify project profile, stack, audience, language policy, whether the user requested automatic setup, code-rules mode, and documentation maintenance mode.
 3. For broad short prompts, run the bundled questionnaire before edits unless all decision gates were explicitly answered in the prompt.
 4. Ask concise questions if core facts are missing; use the bundled questionnaire for multi-question decisions.
 5. Create a short root `AGENTS.md` router only when absent or explicitly approved.
 6. Create `docs/architecture.md` as the documentation map.
-7. Create the full minimal core docs, including `docs/code_rules.md`, plus only the profile docs that match the project; do not create every possible file.
+7. Create the full minimal core docs plus only the profile docs that match the project; include `docs/code_rules.md` only if the user selected code-rules mode.
 8. Add created project-memory docs to `.gitignore` or the repo's VCS ignore file unless the user explicitly wants them tracked.
 9. Link all created docs from `docs/architecture.md`.
 10. Report what was created and what still needs clarification.
@@ -98,7 +109,7 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 3. Identify stale references, duplicated facts, oversized docs, missing owners, and files outside the expected documentation structure.
 4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let the agent decide.
 5. If the user chooses "let the agent decide", read existing docs as project context, preserve durable facts, resolve conflicts with `TODO: clarify` or questions, and migrate docs into this skill's minimal-core/profile-based structure.
-6. If the project has or is getting a docs system, ensure `docs/code_rules.md` exists or propose adding it.
+6. If root agent instructions do not state code-rules mode, ask for one before updating them. Do not treat generic delegation as permission to choose the mode.
 7. If root agent instructions do not state a documentation maintenance mode, ask for one before updating them. Do not treat generic delegation as permission to choose the mode.
 8. Show a proposed docs map before changing existing docs: list current docs, topic owners, and the exact planned create/update/delete actions.
 9. Ensure project-memory docs are ignored by VCS; if `docs/` is public/user-facing, ask before adding broad ignore patterns.
@@ -125,6 +136,7 @@ Use cleanup mode when docs are too large, duplicated, stale, or mixed by topic.
 - Keep project docs in English by default.
 - Keep another language only for UI copy, brand terms, legal/user-facing text, campaign keywords, content examples, or domain terms.
 - Treat `docs/architecture-frontend.md`, `docs/PRODUCT.md`, `docs/DESIGN.md`, and `docs/DEPLOYMENT.md` as profile-based docs, not universal core docs.
+- Treat `docs/code_rules.md` as selected-core: create and route to it only when the user explicitly chooses to use a code-writing rules file.
 - Treat `docs/SECURITY.md` as conditional: create it only for auth, payments, PII, production access, external tokens, or secret-handling needs.
 - Allow automatic docs creation for empty projects only when the user explicitly asks for it.
 - Do not treat the "explicit request before edits" rule as blocking automatic durable documentation maintenance after the user has already asked for code, infrastructure, deployment, or operator-workflow changes and selected automatic durable maintenance.

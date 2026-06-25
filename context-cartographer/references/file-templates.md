@@ -2,11 +2,12 @@
 
 Use these compact templates when creating new project documentation. Remove sections that do not apply. Mark unknown durable facts as `TODO: clarify`.
 
-Resolve the documentation maintenance mode before writing generated files. Do not leave maintenance-mode TODOs in output; replace them with either `automatic durable maintenance` or `request-only maintenance`.
+Resolve both code-rules mode and documentation maintenance mode before writing generated files. Do not leave mode TODOs in output.
 
 ## Contents
 
-- Minimal core: `AGENTS.md`, `docs/architecture.md`, `docs/architecture-overview.md`, `docs/architecture-quality-risks.md`, `docs/code_rules.md`
+- Minimal core: `AGENTS.md`, `docs/architecture.md`, `docs/architecture-overview.md`, `docs/architecture-quality-risks.md`
+- Selected core: `docs/code_rules.md` only when the user chooses to use a dedicated code-writing rules file.
 - Profile docs: `docs/architecture-frontend.md`, `docs/architecture-backend-data.md`, `docs/PRODUCT.md`, `docs/DESIGN.md`, `docs/DEPLOYMENT.md`
 - Conditional docs: `docs/SECURITY.md`, `docs/architecture-payments.md`, `docs/API.md`, `docs/INTEGRATIONS.md`, `docs/CONTENT-SEO.md`, `docs/advertising.md`, `docs/ADMIN.md`, `docs/GLOSSARY.md`
 
@@ -20,7 +21,9 @@ Resolve the documentation maintenance mode before writing generated files. Do no
 - If the user's intent is ambiguous, ask whether they want discussion only or actual file changes before editing.
 - If the goal is unclear and cannot be safely inferred, ask before acting.
 - Treat project-memory docs as local-only: do not commit, push, upload, publish, or deploy them unless explicitly requested.
-- Read `docs/code_rules.md` before changing code or code-adjacent project files such as tests, migrations, scripts, build config, deployment config, or application behavior.
+- Code-rules mode: TODO: replace with `use code rules file` or `do not use code rules file` before writing this file.
+- If code-rules mode is `use code rules file`, read `docs/code_rules.md` before changing code or code-adjacent project files such as tests, migrations, scripts, build config, deployment config, or application behavior.
+- If code-rules mode is `do not use code rules file`, do not require or route to `docs/code_rules.md`; follow root instructions, direct user requests, and local project patterns.
 - Read `docs/architecture.md` only when the task affects structure, behavior, routes, models, services, tests, deployment, durable rules, or documentation organization.
 - Documentation maintenance mode: TODO: replace with `automatic durable maintenance` or `request-only maintenance` before writing this file.
 - If maintenance mode is `automatic durable maintenance`, after any completed work that changes durable project behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership, check whether the matching docs file must be updated. If yes, update it in the same task before the final response; if not, explicitly say that no durable docs update was needed.
@@ -52,7 +55,8 @@ This file is a map, not the full architecture record. Read it when a task affect
 
 ## Companion Docs
 
-- `docs/code_rules.md`: code-editing rules.
+- Code-rules mode: TODO: replace with `use code rules file` or `do not use code rules file` before writing this file.
+- `docs/code_rules.md`: code-editing rules, only when code-rules mode is `use code rules file`.
 
 ## Local-Only Policy
 
@@ -64,6 +68,7 @@ This file is a map, not the full architecture record. Read it when a task affect
 
 - Write new facts only to the most specific owner file.
 - Do not duplicate durable facts across files.
+- Code-rules mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
 - Documentation maintenance mode: TODO: replace with the mode selected in `AGENTS.md` before writing this file.
 - Under `automatic durable maintenance`, update docs only for durable project changes and do it in the same task; do not record routine implementation notes, transient task status, or obvious edits.
 - Under `request-only maintenance`, do not edit docs unless explicitly asked, but flag likely stale docs in the final response.
@@ -129,6 +134,8 @@ docs/
 
 ```markdown
 # Code Rules
+
+Create this file only when the user selected `use code rules file` during first setup.
 
 Behavioral guidelines for agentic coding workflows. Merge with project-specific instructions as needed.
 
