@@ -91,6 +91,8 @@ The questionnaire output is saved as:
 
 The folder is local working data and is ignored by default.
 
+Questionnaire UI language is localized. `questions.json` can set `language: "en"` or `language: "ru"`. If omitted, the server infers Russian from Cyrillic questionnaire text and English otherwise.
+
 ## Documentation Maintenance Mode
 
 Initial docs creation and ongoing docs maintenance are separate decisions.

@@ -109,6 +109,7 @@ def main() -> int:
 
             loaded = server.load_questionnaire(valid_path)
             assert_true(loaded["title"] == "Тестовая анкета", "valid questionnaire title was not preserved")
+            assert_true(loaded["language"] == "ru", "Russian questionnaire language was not inferred")
             assert_true(len(loaded["questions"]) == 5, "valid questionnaire question count changed")
             pass_line("valid questionnaire parses and validates")
 
@@ -166,6 +167,7 @@ def main() -> int:
                 raise AssertionError("empty other_text unexpectedly passed validation")
 
             html = server.build_html(loaded)
+            assert_true('<html lang="ru">' in html, "Russian HTML language attribute missing")
             for expected in (
                 "Сохранить ответы",
                 "Очистить локальный черновик",
@@ -179,16 +181,92 @@ def main() -> int:
                 "Обязательный вопрос",
             ):
                 assert_true(expected in html, f"Russian UI label missing: {expected}")
-            for forbidden in (
-                "Send",
-                "Save",
-                "Required",
-                "Summary",
+            pass_line("Russian UI labels are present")
+
+            english_questionnaire = {
+                "title": "Project Documentation Brief",
+                "description": "Choose how project documentation should be maintained.",
+                "questions": [
+                    {
+                        "id": "maintenance_mode",
+                        "title": "How should documentation be maintained?",
+                        "type": "single_choice",
+                        "required": True,
+                        "options": [
+                            {"value": "automatic", "label": "Automatic durable maintenance"},
+                            {"value": "request_only", "label": "Request-only maintenance"},
+                        ],
+                    },
+                    {
+                        "id": "notes",
+                        "title": "Anything else?",
+                        "type": "textarea",
+                        "required": False,
+                    },
+                    {
+                        "id": "scope",
+                        "title": "Which docs matter?",
+                        "type": "multiple_choice",
+                        "required": True,
+                        "allow_other": True,
+                        "allow_recommend": True,
+                        "options": [
+                            {"value": "deployment", "label": "Deployment"},
+                            {"value": "admin", "label": "Admin workflows"},
+                        ],
+                    },
+                ],
+            }
+            english_loaded = server.validate_questionnaire(english_questionnaire)
+            assert_true(english_loaded["language"] == "en", "English questionnaire language was not inferred")
+            english_html = server.build_html(english_loaded)
+            assert_true('<html lang="en">' in english_html, "English HTML language attribute missing")
+            for expected in (
+                "Save Answers",
+                "Clear Local Draft",
+                "Answer Summary",
                 "Other / my own option",
                 "Not sure / let the agent recommend",
+                "Comment",
+                "Add a clarification, constraint, or note if useful...",
+                "Enter your own option or choose a different answer.",
+                "recommended",
+                "Required question",
             ):
-                assert_true(forbidden not in html, f"English UI label leaked into HTML: {forbidden}")
-            pass_line("Russian UI labels are present and English defaults are absent")
+                assert_true(expected in english_html, f"English UI label missing: {expected}")
+            for forbidden in (
+                "Сохранить ответы",
+                "Очистить локальный черновик",
+                "Сводка ответов",
+                "Другое / свой вариант",
+                "Не уверен / порекомендуй сам",
+                "Комментарий к ответу",
+            ):
+                assert_true(forbidden not in english_html, f"Russian UI label leaked into English HTML: {forbidden}")
+
+            english_answers = {
+                "maintenance_mode": {"value": "request_only", "comment": ""},
+                "notes": {"value": "Keep it lean.", "comment": "No broad rewrite."},
+                "scope": {"value": ["deployment", "__other__"], "other_text": "Architecture map", "comment": ""},
+            }
+            english_output, english_markdown = server.build_answer_documents(english_loaded, english_answers)
+            assert_true(english_output["questionnaire"]["language"] == "en", "answers.json did not preserve English language")
+            assert_true("Questionnaire Answers" in english_markdown, "English answers.md heading missing")
+            assert_true("Project Context" not in english_markdown, "empty English project context should not render")
+            assert_true("Other / my own option: Architecture map" in english_markdown, "English other label missing from markdown")
+
+            invalid_english = dict(english_answers)
+            invalid_english["scope"] = {"value": ["__other__"], "other_text": "", "comment": ""}
+            try:
+                server.build_answer_documents(english_loaded, invalid_english)
+            except server.QuestionnaireError as exc:
+                assert_true(
+                    "Enter your own option or choose a different answer." in str(exc),
+                    "empty English other_text did not produce the English validation message",
+                )
+            else:
+                raise AssertionError("empty English other_text unexpectedly passed validation")
+            pass_line("English UI labels and answer output are localized")
 
             out_dir = temp_dir / ".context-cartographer-questionnaire"
             save_result = server.save_answers(loaded, answers, out_dir, source_path=valid_path)

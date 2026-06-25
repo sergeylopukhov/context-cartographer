@@ -5,6 +5,7 @@ This skill uses a stable JSON object saved as `.context-cartographer-questionnai
 ## Top-Level Fields
 
 - `title` string, required: Short questionnaire title.
+- `language` string, optional: UI/output language. Supported values: `en`, `ru`. If omitted, the server infers Russian when questionnaire text contains Cyrillic and English otherwise.
 - `description` string, optional: One-paragraph explanation shown at the top of the form.
 - `project_context` string or object, optional: Brief context the agent used to build the questionnaire.
 - `questions` array, required: One or more question objects.
@@ -23,8 +24,8 @@ This skill uses a stable JSON object saved as `.context-cartographer-questionnai
   - `scale`
 - `options` array, required for `single_choice` and `multiple_choice`.
 - `recommended` string, number, or array, optional: Recommended option value. For `multiple_choice`, use an array.
-- `allow_other` boolean, optional: Adds `Другое / свой вариант` for choice questions. The UI shows a visible custom-answer field when the user selects it.
-- `allow_recommend` boolean, optional: Adds `Не уверен / порекомендуй сам` for choice questions.
+- `allow_other` boolean, optional: Adds a localized "Other / my own option" choice. The UI shows a visible custom-answer field when the user selects it.
+- `allow_recommend` boolean, optional: Adds a localized "Not sure / let the agent recommend" choice.
 - `required` boolean, optional: Whether the user must answer before saving.
 - `default` string, number, or array, optional: Initial value.
 - `show_if` object, optional: Simple dependency that controls whether the question is visible.
@@ -61,13 +62,18 @@ Object option fields:
 
 ## allow_other Answer Behavior
 
-When `allow_other: true` is set on a `single_choice` or `multiple_choice` question, the server adds a built-in option with value `__other__` and Russian label `Другое / свой вариант`.
+When `allow_other: true` is set on a `single_choice` or `multiple_choice` question, the server adds a built-in option with value `__other__` and a localized label:
+
+- English: `Other / my own option`
+- Russian: `Другое / свой вариант`
 
 If the user selects that option, the UI shows a custom-answer text field directly under the option. The user must type a custom answer or choose a different answer. If the field is empty, the UI shows:
 
 ```text
-Введите свой вариант или выберите другой ответ.
+Enter your own option or choose a different answer.
 ```
+
+For Russian questionnaires, the message is localized as `Введите свой вариант или выберите другой ответ.`
 
 Saved answers preserve both the selected option marker and the custom text:
 
@@ -85,8 +91,10 @@ For backward compatibility, `other_value` mirrors `other_text`.
 
 The UI adds an optional comment textarea under every question:
 
-- Label: `Комментарий к ответу`
-- Placeholder: `Можно добавить уточнение, ограничение или пояснение…`
+- English label: `Comment`
+- English placeholder: `Add a clarification, constraint, or note if useful...`
+- Russian label: `Комментарий к ответу`
+- Russian placeholder: `Можно добавить уточнение, ограничение или пояснение…`
 
 When present, the comment is saved as `comment` in `answers.json` and included under that question in `answers.md`.
 
@@ -218,6 +226,7 @@ Only one operator should be used per `show_if` object.
 
 ```json
 {
+  "language": "en",
   "title": "Landing Page Project Brief",
   "description": "Choose the practical direction for the landing page so the agent can produce a focused implementation plan.",
   "project_context": "The user wants a conversion-focused landing page for a new SaaS product.",

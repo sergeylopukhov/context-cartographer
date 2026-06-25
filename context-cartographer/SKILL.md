@@ -29,6 +29,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - Update docs in later tasks only when durable project behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership changes; do not add routine notes or restate obvious edits.
 - Put unknown facts as `TODO: clarify`; do not invent project facts.
 - Use the bundled questionnaire for broad unclear decisions or many options.
+- Match questionnaire language to the user/project language. For Sergey or Russian prompts, write `language: "ru"` in `questions.json`; for English users/projects, write `language: "en"`. If unclear, use the language of the user's prompt.
 - Verify links and stale references after changing documentation.
 
 ## Mandatory Decision Gates
@@ -68,6 +69,7 @@ For broad short prompts, the questionnaire should normally include:
 The documentation maintenance mode question must be required single-choice with only the real modes as choices, no default answer, no `recommended` value, and no "Not sure/recommend" option. The user must actively select `automatic durable maintenance` or `request-only maintenance`.
 
 1. Create `.context-cartographer-questionnaire/questions.json` in the target project using `references/question_schema.md`.
+   - Set top-level `language` to `ru` or `en` before running the server.
 2. Back up existing `.context-cartographer-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.
 3. Run `python3 <this-skill>/scripts/questionnaire_server.py --input .context-cartographer-questionnaire/questions.json --out-dir .context-cartographer-questionnaire --port 0`.
 4. Give the user the printed `http://127.0.0.1:<port>/` URL and ask them to save the form and say `готово` or equivalent.

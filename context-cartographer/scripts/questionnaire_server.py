@@ -22,12 +22,95 @@ HOST = "127.0.0.1"
 VERSION = "1.1.0"
 SUPPORTED_TYPES = {"single_choice", "multiple_choice", "text", "textarea", "scale"}
 CHOICE_TYPES = {"single_choice", "multiple_choice"}
+SUPPORTED_LANGUAGES = {"en", "ru"}
 NOT_SURE_VALUE = "__not_sure__"
 OTHER_VALUE = "__other__"
-NOT_SURE_LABEL = "Не уверен / порекомендуй сам"
-OTHER_LABEL = "Другое / свой вариант"
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 GITIGNORE_CONTENT = "*\n!.gitignore\n"
+
+
+UI_STRINGS = {
+    "ru": {
+        "not_sure_label": "Не уверен / порекомендуй сам",
+        "other_label": "Другое / свой вариант",
+        "other_required": "Введите свой вариант или выберите другой ответ.",
+        "required_missing": "Ответьте на обязательные вопросы",
+        "questions_label": "Вопросы",
+        "no_answer": "Нет ответа",
+        "markdown_no_answer": "_Нет ответа_",
+        "markdown_title": "Ответы на анкету",
+        "saved_at": "Сохранено",
+        "source_questionnaire": "Исходная анкета",
+        "description_heading": "Описание анкеты",
+        "project_context_heading": "Контекст проекта",
+        "decisions_heading": "Решения",
+        "hidden_heading": "Скрыто условиями показа",
+        "no_visible_answers": "_Нет сохраненных видимых ответов._",
+        "type_label": "Тип",
+        "answer_label": "Ответ",
+        "comment_label": "Комментарий к ответу",
+        "save_button": "Сохранить ответы",
+        "clear_draft_button": "Очистить локальный черновик",
+        "status_line": "После сохранения файлы появятся в локальной папке проекта.",
+        "summary_heading": "Сводка ответов",
+        "progress_answered": "Отвечено",
+        "progress_of": "из",
+        "draft_ready": "Автосохранение черновика готово",
+        "draft_restored": "Локальный черновик восстановлен",
+        "draft_restore_failed": "Не удалось восстановить локальный черновик",
+        "draft_saved": "Черновик сохранен локально",
+        "draft_save_failed": "Не удалось сохранить черновик",
+        "required_question": "Обязательный вопрос",
+        "comment_placeholder": "Можно добавить уточнение, ограничение или пояснение…",
+        "recommended_badge": "рекомендуемый вариант",
+        "recommended_title": "Рекомендуемый вариант",
+        "other_placeholder": "Напишите свой вариант…",
+        "saving": "Сохраняю ответы…",
+        "save_failed": "Не удалось сохранить ответы",
+        "saved_success": "Ответы сохранены. Файлы answers.json и answers.md записаны локально",
+        "clear_success": "Локальный черновик очищен. Сохраненные файлы ответов не изменены.",
+    },
+    "en": {
+        "not_sure_label": "Not sure / let the agent recommend",
+        "other_label": "Other / my own option",
+        "other_required": "Enter your own option or choose a different answer.",
+        "required_missing": "Answer the required questions",
+        "questions_label": "Questions",
+        "no_answer": "No answer",
+        "markdown_no_answer": "_No answer_",
+        "markdown_title": "Questionnaire Answers",
+        "saved_at": "Saved",
+        "source_questionnaire": "Source questionnaire",
+        "description_heading": "Questionnaire Description",
+        "project_context_heading": "Project Context",
+        "decisions_heading": "Decisions",
+        "hidden_heading": "Hidden By Display Conditions",
+        "no_visible_answers": "_No saved visible answers._",
+        "type_label": "Type",
+        "answer_label": "Answer",
+        "comment_label": "Comment",
+        "save_button": "Save Answers",
+        "clear_draft_button": "Clear Local Draft",
+        "status_line": "After saving, files will appear in the local project folder.",
+        "summary_heading": "Answer Summary",
+        "progress_answered": "Answered",
+        "progress_of": "of",
+        "draft_ready": "Draft autosave ready",
+        "draft_restored": "Local draft restored",
+        "draft_restore_failed": "Could not restore local draft",
+        "draft_saved": "Draft saved locally",
+        "draft_save_failed": "Could not save draft",
+        "required_question": "Required question",
+        "comment_placeholder": "Add a clarification, constraint, or note if useful...",
+        "recommended_badge": "recommended",
+        "recommended_title": "Recommended option",
+        "other_placeholder": "Write your own option...",
+        "saving": "Saving answers...",
+        "save_failed": "Could not save answers",
+        "saved_success": "Answers saved. answers.json and answers.md were written locally",
+        "clear_success": "Local draft cleared. Saved answer files were not changed.",
+    },
+}
 
 
 class QuestionnaireError(Exception):
@@ -35,6 +118,7 @@ class QuestionnaireError(Exception):
 
 
 DEFAULT_DEMO_QUESTIONNAIRE = {
+    "language": "ru",
     "title": "Демо-анкета проекта",
     "description": "Короткая встроенная анкета для проверки локальной формы.",
     "project_context": "Только демонстрация. Для реальной работы передайте --input .context-cartographer-questionnaire/questions.json.",
@@ -93,6 +177,48 @@ def _json_scalar_to_str(value: Any) -> str:
     if isinstance(value, (dict, list)):
         return json.dumps(value, ensure_ascii=False)
     return str(value)
+
+
+def _localized_strings(language: str | None) -> dict[str, str]:
+    return UI_STRINGS.get(language or "en", UI_STRINGS["en"])
+
+
+def _infer_language(data: dict[str, Any]) -> str:
+    explicit = data.get("language", data.get("lang", data.get("locale")))
+    if explicit is not None:
+        if not isinstance(explicit, str):
+            raise QuestionnaireError("Questionnaire language must be a string.")
+        normalized = explicit.strip().lower().split("_", 1)[0].split("-", 1)[0]
+        if normalized not in SUPPORTED_LANGUAGES:
+            raise QuestionnaireError("Questionnaire language must be one of: en, ru.")
+        return normalized
+
+    parts: list[str] = []
+    for key in ("title", "description"):
+        value = data.get(key)
+        if isinstance(value, str):
+            parts.append(value)
+    context = data.get("project_context")
+    if isinstance(context, str):
+        parts.append(context)
+    for question in data.get("questions", []) if isinstance(data.get("questions"), list) else []:
+        if not isinstance(question, dict):
+            continue
+        for key in ("title", "help_text", "help"):
+            value = question.get(key)
+            if isinstance(value, str):
+                parts.append(value)
+        for option in question.get("options", []) if isinstance(question.get("options"), list) else []:
+            if isinstance(option, str):
+                parts.append(option)
+            elif isinstance(option, dict):
+                for key in ("label", "help_text"):
+                    value = option.get(key)
+                    if isinstance(value, str):
+                        parts.append(value)
+
+    joined = "\n".join(parts)
+    return "ru" if re.search(r"[А-Яа-яЁё]", joined) else "en"
 
 
 def _normalize_option(raw: Any, question_id: str, index: int) -> dict[str, Any]:
@@ -287,7 +413,9 @@ def validate_questionnaire(raw: Any, source: str = "<memory>") -> dict[str, Any]
     if not _is_nonempty_string(data.get("title")):
         raise QuestionnaireError("Questionnaire title must be a non-empty string.")
 
+    language = _infer_language(data)
     normalized: dict[str, Any] = {
+        "language": language,
         "title": data["title"].strip(),
         "description": "",
         "project_context": "",
@@ -412,16 +540,18 @@ def question_is_visible(question: dict[str, Any], answers: dict[str, Any]) -> bo
     return True
 
 
-def _option_label_map(question: dict[str, Any]) -> dict[Any, str]:
+def _option_label_map(question: dict[str, Any], language: str = "en") -> dict[Any, str]:
+    ui = _localized_strings(language)
     labels = {option["value"]: option["label"] for option in question.get("options", [])}
     if question.get("allow_recommend"):
-        labels[NOT_SURE_VALUE] = NOT_SURE_LABEL
+        labels[NOT_SURE_VALUE] = ui["not_sure_label"]
     if question.get("allow_other"):
-        labels[OTHER_VALUE] = OTHER_LABEL
+        labels[OTHER_VALUE] = ui["other_label"]
     return labels
 
 
-def _display_answer(question: dict[str, Any], raw: Any) -> str | list[str]:
+def _display_answer(question: dict[str, Any], raw: Any, language: str = "en") -> str | list[str]:
+    ui = _localized_strings(language)
     answer = _answer_object(raw)
     value = answer.get("value")
     other = str(answer.get("other_text", answer.get("other", ""))).strip()
@@ -433,19 +563,19 @@ def _display_answer(question: dict[str, Any], raw: Any) -> str | list[str]:
     if qtype == "multiple_choice":
         if not isinstance(value, list):
             value = [value]
-        labels = _option_label_map(question)
+        labels = _option_label_map(question, language)
         rendered: list[str] = []
         for item in value:
             if item == OTHER_VALUE:
-                rendered.append(f"{OTHER_LABEL}: {other}" if other else OTHER_LABEL)
+                rendered.append(f"{ui['other_label']}: {other}" if other else ui["other_label"])
             else:
                 rendered.append(labels.get(item, _json_scalar_to_str(item)))
         return rendered
 
     if qtype == "single_choice":
-        labels = _option_label_map(question)
+        labels = _option_label_map(question, language)
         if value == OTHER_VALUE:
-            return f"{OTHER_LABEL}: {other}" if other else OTHER_LABEL
+            return f"{ui['other_label']}: {other}" if other else ui["other_label"]
         return labels.get(value, _json_scalar_to_str(value))
 
     if qtype == "scale":
@@ -458,10 +588,10 @@ def _comment_text(raw: Any) -> str:
     return str(_answer_object(raw).get("comment", "")).strip()
 
 
-def _selected_options(question: dict[str, Any], raw: Any) -> list[dict[str, Any]]:
+def _selected_options(question: dict[str, Any], raw: Any, language: str = "en") -> list[dict[str, Any]]:
     if question["type"] not in CHOICE_TYPES:
         return []
-    labels = _option_label_map(question)
+    labels = _option_label_map(question, language)
     values = _answer_values(raw)
     return [
         {
@@ -485,6 +615,7 @@ def _selected_other_without_text(question: dict[str, Any], raw: Any) -> bool:
 
 
 def _validate_submitted_answers(questionnaire: dict[str, Any], answers: dict[str, Any]) -> None:
+    ui = _localized_strings(questionnaire.get("language"))
     missing: list[str] = []
     missing_other: list[str] = []
     for question in questionnaire["questions"]:
@@ -496,22 +627,23 @@ def _validate_submitted_answers(questionnaire: dict[str, Any], answers: dict[str
         if _selected_other_without_text(question, raw):
             missing_other.append(question["title"])
     if missing_other:
-        raise QuestionnaireError("Введите свой вариант или выберите другой ответ. Вопросы: " + "; ".join(missing_other))
+        raise QuestionnaireError(ui["other_required"] + " " + ui["questions_label"] + ": " + "; ".join(missing_other))
     if missing:
-        raise QuestionnaireError("Ответьте на обязательные вопросы: " + "; ".join(missing))
+        raise QuestionnaireError(ui["required_missing"] + ": " + "; ".join(missing))
 
 
 def _markdown_escape_inline(value: str) -> str:
     return value.replace("\n", " ").strip()
 
 
-def _markdown_value(value: str | list[str]) -> str:
+def _markdown_value(value: str | list[str], language: str = "en") -> str:
+    ui = _localized_strings(language)
     if isinstance(value, list):
         if not value:
-            return "_Нет ответа_"
+            return ui["markdown_no_answer"]
         return "\n".join(f"  - {_markdown_escape_inline(str(item))}" for item in value)
     if not value:
-        return "_Нет ответа_"
+        return ui["markdown_no_answer"]
     if "\n" in value:
         return "\n\n" + "\n".join(f"> {line}" if line else ">" for line in value.splitlines())
     return _markdown_escape_inline(str(value))
@@ -528,13 +660,15 @@ def build_answer_documents(
 
     _validate_submitted_answers(questionnaire, answers)
     saved_at = saved_at or _dt.datetime.now().astimezone().isoformat(timespec="seconds")
+    language = questionnaire.get("language", "en")
+    ui = _localized_strings(language)
 
     answer_items: list[dict[str, Any]] = []
     for index, question in enumerate(questionnaire["questions"], start=1):
         visible = question_is_visible(question, answers)
         raw = _answer_object(answers.get(question["id"], {}))
-        display_value = _display_answer(question, raw) if visible else ""
-        selected_options = _selected_options(question, raw) if visible else []
+        display_value = _display_answer(question, raw, language) if visible else ""
+        selected_options = _selected_options(question, raw, language) if visible else []
         other_text = str(raw.get("other_text", raw.get("other", ""))).strip()
         comment = _comment_text(raw)
         answer_items.append(
@@ -560,6 +694,7 @@ def build_answer_documents(
 
     output = {
         "questionnaire": {
+            "language": language,
             "title": questionnaire["title"],
             "description": questionnaire.get("description", ""),
             "project_context": questionnaire.get("project_context", ""),
@@ -574,40 +709,40 @@ def build_answer_documents(
     }
 
     lines = [
-        f"# Ответы на анкету: {questionnaire['title']}",
+        f"# {ui['markdown_title']}: {questionnaire['title']}",
         "",
-        f"- Сохранено: {saved_at}",
+        f"- {ui['saved_at']}: {saved_at}",
     ]
     if source_path:
-        lines.append(f"- Исходная анкета: `{source_path}`")
+        lines.append(f"- {ui['source_questionnaire']}: `{source_path}`")
 
     description = questionnaire.get("description")
     if description:
-        lines.extend(["", "## Описание анкеты", "", str(description).strip()])
+        lines.extend(["", f"## {ui['description_heading']}", "", str(description).strip()])
 
     context = questionnaire.get("project_context")
     if context:
         context_text = context if isinstance(context, str) else json.dumps(context, ensure_ascii=False, indent=2)
-        lines.extend(["", "## Контекст проекта", "", str(context_text).strip()])
+        lines.extend(["", f"## {ui['project_context_heading']}", "", str(context_text).strip()])
 
-    lines.extend(["", "## Решения", ""])
+    lines.extend(["", f"## {ui['decisions_heading']}", ""])
     visible_answers = [item for item in answer_items if item["visible"]]
     if not visible_answers:
-        lines.append("_Нет сохраненных видимых ответов._")
+        lines.append(ui["no_visible_answers"])
     else:
         for item in visible_answers:
             lines.append(f"### {item['index']}. {item['title']}")
             lines.append("")
             lines.append(f"- ID: `{item['id']}`")
-            lines.append(f"- Тип: `{item['type']}`")
-            lines.append("- Ответ: " + _markdown_value(item["display_value"]))
+            lines.append(f"- {ui['type_label']}: `{item['type']}`")
+            lines.append(f"- {ui['answer_label']}: " + _markdown_value(item["display_value"], language))
             if item["comment"]:
-                lines.append("- Комментарий: " + _markdown_value(item["comment"]))
+                lines.append(f"- {ui['comment_label']}: " + _markdown_value(item["comment"], language))
             lines.append("")
 
     hidden = [item for item in answer_items if not item["visible"]]
     if hidden:
-        lines.extend(["## Скрыто условиями показа", ""])
+        lines.extend([f"## {ui['hidden_heading']}", ""])
         for item in hidden:
             lines.append(f"- `{item['id']}`: {item['title']}")
 
@@ -702,8 +837,15 @@ def _json_for_script(data: Any) -> str:
 
 def build_html(questionnaire: dict[str, Any]) -> str:
     page_title = html.escape(questionnaire["title"])
-    questionnaire_json = _json_for_script(questionnaire)
-    return HTML_TEMPLATE.replace("__PAGE_TITLE__", page_title).replace("__QUESTIONNAIRE_JSON__", questionnaire_json)
+    language = questionnaire.get("language", "en")
+    payload = copy.deepcopy(questionnaire)
+    payload["_ui"] = _localized_strings(language)
+    questionnaire_json = _json_for_script(payload)
+    return (
+        HTML_TEMPLATE.replace("__LANG__", html.escape(language))
+        .replace("__PAGE_TITLE__", page_title)
+        .replace("__QUESTIONNAIRE_JSON__", questionnaire_json)
+    )
 
 
 class QuestionnaireHTTPServer(ThreadingHTTPServer):
@@ -896,7 +1038,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 HTML_TEMPLATE = """<!doctype html>
-<html lang="ru">
+<html lang="__LANG__">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1243,8 +1385,8 @@ HTML_TEMPLATE = """<!doctype html>
 
     <div class="progress-wrap" aria-live="polite">
       <div class="progress-meta">
-        <span id="progressText">Отвечено: 0 из 0</span>
-        <span id="draftStatus">Автосохранение черновика готово</span>
+        <span id="progressText"></span>
+        <span id="draftStatus"></span>
       </div>
       <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
     </div>
@@ -1252,14 +1394,14 @@ HTML_TEMPLATE = """<!doctype html>
     <form id="form"></form>
 
     <section class="actions">
-      <button type="button" id="saveButton">Сохранить ответы</button>
-      <button type="button" class="ghost" id="clearDraftButton">Очистить локальный черновик</button>
-      <span class="status-line">После сохранения файлы появятся в локальной папке проекта.</span>
+      <button type="button" id="saveButton"></button>
+      <button type="button" class="ghost" id="clearDraftButton"></button>
+      <span class="status-line" id="statusLine"></span>
       <div class="message" id="message"></div>
     </section>
 
     <section class="summary" id="summary">
-      <h2>Сводка ответов</h2>
+      <h2 id="summaryHeading"></h2>
       <dl id="summaryList"></dl>
     </section>
   </main>
@@ -1267,6 +1409,7 @@ HTML_TEMPLATE = """<!doctype html>
   <script id="questionnaire-data" type="application/json">__QUESTIONNAIRE_JSON__</script>
   <script>
     const questionnaire = JSON.parse(document.getElementById("questionnaire-data").textContent);
+    const ui = questionnaire._ui || {};
     const storageKey = "context-cartographer-questionnaire:" + questionnaire.title + ":" + questionnaire.questions.map(q => q.id).join(",");
     const answers = {};
     const form = document.getElementById("form");
@@ -1279,14 +1422,30 @@ HTML_TEMPLATE = """<!doctype html>
     const message = document.getElementById("message");
     const summary = document.getElementById("summary");
     const summaryList = document.getElementById("summaryList");
+    const saveButton = document.getElementById("saveButton");
+    const clearDraftButton = document.getElementById("clearDraftButton");
+    const statusLine = document.getElementById("statusLine");
+    const summaryHeading = document.getElementById("summaryHeading");
+
+    function t(key, fallback) {
+      return Object.prototype.hasOwnProperty.call(ui, key) ? ui[key] : fallback;
+    }
+
+    function applyStaticLabels() {
+      saveButton.textContent = t("save_button", "Save Answers");
+      clearDraftButton.textContent = t("clear_draft_button", "Clear Local Draft");
+      statusLine.textContent = t("status_line", "After saving, files will appear in the local project folder.");
+      summaryHeading.textContent = t("summary_heading", "Answer Summary");
+      draftStatus.textContent = t("draft_ready", "Draft autosave ready");
+    }
 
     function optionList(question) {
       const options = Array.isArray(question.options) ? question.options.slice() : [];
       if (question.allow_recommend) {
-        options.push({ value: "__not_sure__", label: "Не уверен / порекомендуй сам" });
+        options.push({ value: "__not_sure__", label: t("not_sure_label", "Not sure / let the agent recommend") });
       }
       if (question.allow_other) {
-        options.push({ value: "__other__", label: "Другое / свой вариант" });
+        options.push({ value: "__other__", label: t("other_label", "Other / my own option") });
       }
       return options;
     }
@@ -1327,20 +1486,20 @@ HTML_TEMPLATE = """<!doctype html>
                 answers[question.id] = normalizeAnswer(question, parsed.answers[question.id]);
               }
             }
-            draftStatus.textContent = "Локальный черновик восстановлен";
+            draftStatus.textContent = t("draft_restored", "Local draft restored");
           }
         }
       } catch {
-        draftStatus.textContent = "Не удалось восстановить локальный черновик";
+        draftStatus.textContent = t("draft_restore_failed", "Could not restore local draft");
       }
     }
 
     function saveDraft() {
       try {
         localStorage.setItem(storageKey, JSON.stringify({ answers, updated_at: new Date().toISOString() }));
-        draftStatus.textContent = "Черновик сохранен локально";
+        draftStatus.textContent = t("draft_saved", "Draft saved locally");
       } catch {
-        draftStatus.textContent = "Не удалось сохранить черновик";
+        draftStatus.textContent = t("draft_save_failed", "Could not save draft");
       }
     }
 
@@ -1411,7 +1570,7 @@ HTML_TEMPLATE = """<!doctype html>
         const required = document.createElement("span");
         required.className = "required";
         required.textContent = "*";
-        required.title = "Обязательный вопрос";
+        required.title = t("required_question", "Required question");
         heading.appendChild(required);
       }
       section.appendChild(heading);
@@ -1432,11 +1591,11 @@ HTML_TEMPLATE = """<!doctype html>
 
       const label = document.createElement("label");
       label.setAttribute("for", `comment-${question.id}`);
-      label.textContent = "Комментарий к ответу";
+      label.textContent = t("comment_label", "Comment");
 
       const textarea = document.createElement("textarea");
       textarea.id = `comment-${question.id}`;
-      textarea.placeholder = "Можно добавить уточнение, ограничение или пояснение…";
+      textarea.placeholder = t("comment_placeholder", "Add a clarification, constraint, or note if useful...");
       textarea.value = (answers[question.id] && answers[question.id].comment) || "";
       textarea.addEventListener("input", () => {
         answers[question.id].comment = textarea.value;
@@ -1485,7 +1644,7 @@ HTML_TEMPLATE = """<!doctype html>
         if (isRecommended) {
           const badge = document.createElement("span");
           badge.className = "recommended";
-          badge.textContent = "рекомендуемый вариант";
+          badge.textContent = t("recommended_badge", "recommended");
           optionLabel.appendChild(badge);
         }
         content.appendChild(optionLabel);
@@ -1505,7 +1664,7 @@ HTML_TEMPLATE = """<!doctype html>
           const other = document.createElement("textarea");
           other.className = "other-input";
           other.dataset.questionId = question.id;
-          other.placeholder = "Напишите свой вариант…";
+          other.placeholder = t("other_placeholder", "Write your own option...");
           other.value = current.other_text || "";
           other.hidden = !input.checked;
           other.addEventListener("input", () => {
@@ -1567,7 +1726,7 @@ HTML_TEMPLATE = """<!doctype html>
         });
         label.appendChild(input);
         appendText(label, value);
-        if (question.recommended === value) label.title = "Рекомендуемый вариант";
+        if (question.recommended === value) label.title = t("recommended_title", "Recommended option");
         wrap.appendChild(label);
       }
       section.appendChild(wrap);
@@ -1613,7 +1772,7 @@ HTML_TEMPLATE = """<!doctype html>
           if (otherInput) otherInput.hidden = !answerValues(answers[question.id]).includes("__other__");
         }
       }
-      progressText.textContent = `Отвечено: ${answered} из ${visible}`;
+      progressText.textContent = `${t("progress_answered", "Answered")}: ${answered} ${t("progress_of", "of")} ${visible}`;
       progressBar.style.width = visible ? `${Math.round((answered / visible) * 100)}%` : "0%";
     }
 
@@ -1638,7 +1797,7 @@ HTML_TEMPLATE = """<!doctype html>
 
     function answerDisplay(item) {
       if (Array.isArray(item.display_value)) return item.display_value.join("\\n");
-      return item.display_value || "Нет ответа";
+      return item.display_value || t("no_answer", "No answer");
     }
 
     function render_svodka(items) {
@@ -1647,7 +1806,7 @@ HTML_TEMPLATE = """<!doctype html>
         const dt = document.createElement("dt");
         dt.textContent = item.title;
         const dd = document.createElement("dd");
-        const comment = item.comment ? `\\nКомментарий: ${item.comment}` : "";
+        const comment = item.comment ? `\\n${t("comment_label", "Comment")}: ${item.comment}` : "";
         dd.textContent = answerDisplay(item) + comment;
         summaryList.appendChild(dt);
         summaryList.appendChild(dd);
@@ -1658,14 +1817,14 @@ HTML_TEMPLATE = """<!doctype html>
     async function saveAnswers() {
       const validation = validate_required();
       if (validation.missingOther.length) {
-        showMessage("error", "Введите свой вариант или выберите другой ответ.");
+        showMessage("error", t("other_required", "Enter your own option or choose a different answer."));
         return;
       }
       if (validation.missing.length) {
-        showMessage("error", "Ответьте на обязательные вопросы: " + validation.missing.join("; "));
+        showMessage("error", t("required_missing", "Answer the required questions") + ": " + validation.missing.join("; "));
         return;
       }
-      showMessage("success", "Сохраняю ответы…");
+      showMessage("success", t("saving", "Saving answers..."));
       try {
         const response = await fetch("/save", {
           method: "POST",
@@ -1674,9 +1833,9 @@ HTML_TEMPLATE = """<!doctype html>
         });
         const result = await response.json();
         if (!response.ok || !result.ok) {
-          throw new Error(result.error || "Не удалось сохранить ответы");
+          throw new Error(result.error || t("save_failed", "Could not save answers"));
         }
-        showMessage("success", `Ответы сохранены. Файлы answers.json и answers.md записаны локально: ${result.saved_at}.`);
+        showMessage("success", `${t("saved_success", "Answers saved. answers.json and answers.md were written locally")}: ${result.saved_at}.`);
         render_svodka(result.answers || []);
       } catch (error) {
         showMessage("error", error.message || String(error));
@@ -1688,14 +1847,15 @@ HTML_TEMPLATE = """<!doctype html>
       initializeAnswers();
       renderForm();
       refresh();
-      showMessage("success", "Локальный черновик очищен. Сохраненные файлы ответов не изменены.");
+      showMessage("success", t("clear_success", "Local draft cleared. Saved answer files were not changed."));
     }
 
     initializeAnswers();
+    applyStaticLabels();
     renderForm();
     refresh();
-    document.getElementById("saveButton").addEventListener("click", saveAnswers);
-    document.getElementById("clearDraftButton").addEventListener("click", clearDraft);
+    saveButton.addEventListener("click", saveAnswers);
+    clearDraftButton.addEventListener("click", clearDraft);
   </script>
 </body>
 </html>
