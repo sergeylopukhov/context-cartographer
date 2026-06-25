@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import re
@@ -52,10 +53,31 @@ def fetch_remote_version(repo: str, branch: str, path: str, timeout: int) -> str
         with urlopen(url, timeout=timeout) as response:
             body = response.read(200).decode("utf-8", errors="replace")
     except URLError as exc:
-        raise UpdateCheckError(f"Could not fetch remote VERSION from {url}: {exc}") from exc
+        return fetch_remote_version_from_api(repo, branch, path, timeout, raw_error=str(exc))
     version = body.strip().splitlines()[0] if body.strip() else ""
     if not version:
-        raise UpdateCheckError(f"Remote VERSION is empty: {url}")
+        return fetch_remote_version_from_api(repo, branch, path, timeout, raw_error=f"Remote VERSION is empty: {url}")
+    return version
+
+
+def fetch_remote_version_from_api(repo: str, branch: str, path: str, timeout: int, raw_error: str) -> str:
+    clean_path = path.strip("/")
+    url = f"https://api.github.com/repos/{repo}/contents/{clean_path}/VERSION?ref={branch}"
+    try:
+        with urlopen(url, timeout=timeout) as response:
+            data = json.loads(response.read().decode("utf-8", errors="replace"))
+    except (URLError, json.JSONDecodeError) as exc:
+        raise UpdateCheckError(f"Could not fetch remote VERSION from raw or API. Raw: {raw_error}. API: {exc}") from exc
+    content = data.get("content")
+    if not isinstance(content, str):
+        raise UpdateCheckError(f"GitHub API response does not contain VERSION content. Raw: {raw_error}")
+    try:
+        body = base64.b64decode(content).decode("utf-8", errors="replace")
+    except ValueError as exc:
+        raise UpdateCheckError(f"Could not decode remote VERSION from GitHub API. Raw: {raw_error}") from exc
+    version = body.strip().splitlines()[0] if body.strip() else ""
+    if not version:
+        raise UpdateCheckError(f"Remote VERSION is empty in raw and API responses. Raw: {raw_error}")
     return version
 
 
