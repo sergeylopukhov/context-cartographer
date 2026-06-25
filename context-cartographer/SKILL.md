@@ -61,6 +61,7 @@ Keep `AGENTS.md` short. Put project documentation in `docs/`. Prefer a documenta
 - Read `references/audit-checklist.md` before auditing an existing repository.
 - Read `references/cleanup-rules.md` before splitting, merging, deleting, or renaming documentation.
 - Read `references/question_schema.md` before creating a questionnaire JSON.
+- Read `references/questionnaire_usage_examples.md` when adapting the bundled questionnaire flow or examples.
 
 ## Bundled Questionnaire
 
@@ -79,13 +80,14 @@ The documentation maintenance mode question must be required single-choice with 
 
 The code-rules mode question must also be required single-choice with only the real modes as choices, no default answer, no `recommended` value, and no "Not sure/recommend" option. The user must actively select whether to use `docs/code_rules.md` for future code and code-adjacent edits.
 
-1. Create `.context-cartographer-questionnaire/questions.json` in the target project using `references/question_schema.md`.
+1. Create `.project-questionnaire/questions.json` in the target project using `references/question_schema.md`.
    - Set top-level `language` to `ru` or `en` before running the server.
-2. Back up existing `.context-cartographer-questionnaire/answers.json` or `answers.md` before overwriting questionnaire files.
-3. Run `python3 <this-skill>/scripts/questionnaire_server.py --input .context-cartographer-questionnaire/questions.json --out-dir .context-cartographer-questionnaire --port 0`.
+2. Validate it with `python3 <this-skill>/scripts/questionnaire_server.py --input .project-questionnaire/questions.json --validate-only`.
+3. Run `python3 <this-skill>/scripts/questionnaire_server.py --input .project-questionnaire/questions.json --out-dir .project-questionnaire --port 0`.
 4. Give the user the printed `http://127.0.0.1:<port>/` URL and ask them to save the form and say `готово` or equivalent.
-5. After completion, read `.context-cartographer-questionnaire/answers.json` and `.context-cartographer-questionnaire/answers.md`, summarize decisions, then continue.
-6. If local Python or browser access is unavailable, ask up to three concise chat questions instead.
+5. After completion, read `.project-questionnaire/answers.json` and `.project-questionnaire/answers.md`, summarize decisions, then continue.
+6. Do not delete generated questionnaire files until saved answers have been read. Clean them only when the user explicitly asks.
+7. If local Python or browser access is unavailable, ask up to three concise chat questions instead.
 
 Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, include "Other/custom" and "Not sure/recommend" options when useful, and never ask for secrets or private keys.
 

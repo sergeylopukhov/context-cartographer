@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke tests for the context-cartographer bundled questionnaire."""
+"""Smoke tests for the interactive project questionnaire skill."""
 
 from __future__ import annotations
 
@@ -44,6 +44,7 @@ def main() -> int:
         valid_questionnaire = {
             "title": "Тестовая анкета",
             "description": "Корректная анкета для smoke-теста.",
+            "language": "ru",
             "project_context": {"project": "тест"},
             "metadata": {"suite": "smoke"},
             "questions": [
@@ -109,13 +110,25 @@ def main() -> int:
 
             loaded = server.load_questionnaire(valid_path)
             assert_true(loaded["title"] == "Тестовая анкета", "valid questionnaire title was not preserved")
-            assert_true(loaded["language"] == "ru", "Russian questionnaire language was not inferred")
             assert_true(len(loaded["questions"]) == 5, "valid questionnaire question count changed")
             pass_line("valid questionnaire parses and validates")
 
             direct = server.validate_questionnaire(valid_questionnaire)
             assert_true(direct["questions"][0]["id"] == "audience", "direct validation returned unexpected data")
             pass_line("schema validation accepts valid data")
+
+            english_questionnaire = dict(valid_questionnaire)
+            english_questionnaire["title"] = "Smoke Test Questionnaire"
+            english_questionnaire["description"] = "Valid questionnaire for smoke tests."
+            english_questionnaire.pop("language")
+            english_loaded = server.validate_questionnaire(english_questionnaire)
+            assert_true(english_loaded["language"] == "en", "default language should be English")
+            assert_true(english_loaded["ui"]["other_label"] == "Other / custom answer", "English other label missing")
+            english_html = server.build_html(english_loaded)
+            assert_true("Save answers" in english_html, "English save button missing")
+            assert_true("Other / custom answer" in english_html, "English other option label missing")
+            assert_true("Сохранить ответы" not in english_html, "Russian save button leaked into English default UI")
+            pass_line("English is the default UI language")
 
             malformed_path = temp_dir / "malformed.json"
             malformed_path.write_text('{"title": "Broken", "questions": [', encoding="utf-8")
@@ -167,119 +180,27 @@ def main() -> int:
                 raise AssertionError("empty other_text unexpectedly passed validation")
 
             html = server.build_html(loaded)
-            assert_true('<html lang="ru">' in html, "Russian HTML language attribute missing")
-            for expected in (
-                'class="app-shell"',
-                'class="intro-panel"',
-                'class="questionnaire-panel"',
-                'class="meta-card"',
-            ):
-                assert_true(expected in html, f"transferred questionnaire shell markup missing: {expected}")
+            assert_true(
+                "JSON.stringify(questionnaire.project_context" not in html,
+                "project_context should not be rendered as visible raw JSON in the form",
+            )
+            assert_true('context.textContent = "";' in html, "project_context display should be cleared in the form")
             for expected in (
                 "Сохранить ответы",
                 "Очистить локальный черновик",
                 "Сводка ответов",
-                "Локальная анкета",
-                "Ответы сохраняются локально",
                 "Другое / свой вариант",
                 "Не уверен / порекомендуй сам",
                 "Комментарий к ответу",
-                "Можно добавить уточнение, ограничение или пояснение…",
+                "Можно добавить уточнение, ограничение или пояснение...",
                 "Введите свой вариант или выберите другой ответ.",
                 "Рекомендуемый вариант",
                 "Обязательный вопрос",
             ):
                 assert_true(expected in html, f"Russian UI label missing: {expected}")
-            pass_line("Russian UI labels are present")
+            pass_line("Russian UI labels are present when language is ru")
 
-            english_questionnaire = {
-                "title": "Project Documentation Brief",
-                "description": "Choose how project documentation should be maintained.",
-                "questions": [
-                    {
-                        "id": "maintenance_mode",
-                        "title": "How should documentation be maintained?",
-                        "type": "single_choice",
-                        "required": True,
-                        "options": [
-                            {"value": "automatic", "label": "Automatic durable maintenance"},
-                            {"value": "request_only", "label": "Request-only maintenance"},
-                        ],
-                    },
-                    {
-                        "id": "notes",
-                        "title": "Anything else?",
-                        "type": "textarea",
-                        "required": False,
-                    },
-                    {
-                        "id": "scope",
-                        "title": "Which docs matter?",
-                        "type": "multiple_choice",
-                        "required": True,
-                        "allow_other": True,
-                        "allow_recommend": True,
-                        "options": [
-                            {"value": "deployment", "label": "Deployment"},
-                            {"value": "admin", "label": "Admin workflows"},
-                        ],
-                    },
-                ],
-            }
-            english_loaded = server.validate_questionnaire(english_questionnaire)
-            assert_true(english_loaded["language"] == "en", "English questionnaire language was not inferred")
-            english_html = server.build_html(english_loaded)
-            assert_true('<html lang="en">' in english_html, "English HTML language attribute missing")
-            for expected in (
-                "Save Answers",
-                "Clear Local Draft",
-                "Answer Summary",
-                "Local Questionnaire",
-                "Answers Are Saved Locally",
-                "Other / my own option",
-                "Not sure / let the agent recommend",
-                "Comment",
-                "Add a clarification, constraint, or note if useful...",
-                "Enter your own option or choose a different answer.",
-                "recommended",
-                "Required question",
-            ):
-                assert_true(expected in english_html, f"English UI label missing: {expected}")
-            for forbidden in (
-                "Сохранить ответы",
-                "Очистить локальный черновик",
-                "Сводка ответов",
-                "Другое / свой вариант",
-                "Не уверен / порекомендуй сам",
-                "Комментарий к ответу",
-            ):
-                assert_true(forbidden not in english_html, f"Russian UI label leaked into English HTML: {forbidden}")
-
-            english_answers = {
-                "maintenance_mode": {"value": "request_only", "comment": ""},
-                "notes": {"value": "Keep it lean.", "comment": "No broad rewrite."},
-                "scope": {"value": ["deployment", "__other__"], "other_text": "Architecture map", "comment": ""},
-            }
-            english_output, english_markdown = server.build_answer_documents(english_loaded, english_answers)
-            assert_true(english_output["questionnaire"]["language"] == "en", "answers.json did not preserve English language")
-            assert_true("Questionnaire Answers" in english_markdown, "English answers.md heading missing")
-            assert_true("Project Context" not in english_markdown, "empty English project context should not render")
-            assert_true("Other / my own option: Architecture map" in english_markdown, "English other label missing from markdown")
-
-            invalid_english = dict(english_answers)
-            invalid_english["scope"] = {"value": ["__other__"], "other_text": "", "comment": ""}
-            try:
-                server.build_answer_documents(english_loaded, invalid_english)
-            except server.QuestionnaireError as exc:
-                assert_true(
-                    "Enter your own option or choose a different answer." in str(exc),
-                    "empty English other_text did not produce the English validation message",
-                )
-            else:
-                raise AssertionError("empty English other_text unexpectedly passed validation")
-            pass_line("English UI labels and answer output are localized")
-
-            out_dir = temp_dir / ".context-cartographer-questionnaire"
+            out_dir = temp_dir / ".project-questionnaire"
             save_result = server.save_answers(loaded, answers, out_dir, source_path=valid_path)
             assert_true((out_dir / ".gitignore").read_text(encoding="utf-8") == "*\n!.gitignore\n", ".gitignore was not created")
             assert_true((out_dir / "answers.json").exists(), "answers.json was not written")

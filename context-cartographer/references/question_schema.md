@@ -1,15 +1,66 @@
 # Questionnaire JSON Schema
 
-This skill uses a stable JSON object saved as `.context-cartographer-questionnaire/questions.json`.
+Save questionnaire definitions as a UTF-8 JSON object, usually:
+
+```text
+.project-questionnaire/questions.json
+```
 
 ## Top-Level Fields
 
 - `title` string, required: Short questionnaire title.
-- `language` string, optional: UI/output language. Supported values: `en`, `ru`. If omitted, the server infers Russian when questionnaire text contains Cyrillic and English otherwise.
 - `description` string, optional: One-paragraph explanation shown at the top of the form.
-- `project_context` string or object, optional: Brief context the agent used to build the questionnaire.
+- `language` string, optional: Built-in UI language. Supported values: `en`, `ru`. Defaults to `en`.
+- `ui` object, optional: Overrides for built-in UI labels. Keys must match the supported UI keys listed below.
+- `project_context` string, object, or array, optional: Internal context the agent used to build the questionnaire. It is saved in answer files for the agent, but is not shown in the browser form.
 - `questions` array, required: One or more question objects.
 - `metadata` object, optional: Non-user-facing data for the agent.
+
+## Language And UI Labels
+
+Use:
+
+```json
+"language": "en"
+```
+
+or:
+
+```json
+"language": "ru"
+```
+
+The server adds built-in labels for "Other", "Not sure", comments, buttons, progress, errors, and generated Markdown headings.
+
+Use `ui` only for project-specific overrides:
+
+```json
+{
+  "language": "en",
+  "ui": {
+    "other_label": "Something else",
+    "save_answers": "Save brief"
+  }
+}
+```
+
+Common UI keys:
+
+- `not_sure_label`
+- `other_label`
+- `other_placeholder`
+- `other_required`
+- `required_missing`
+- `comment_label`
+- `comment_placeholder`
+- `save_answers`
+- `clear_draft`
+- `summary_title`
+- `saved_message`
+- `markdown_title`
+- `markdown_answers`
+
+If an unknown `ui` key is supplied, validation fails.
 
 ## Question Fields
 
@@ -24,8 +75,8 @@ This skill uses a stable JSON object saved as `.context-cartographer-questionnai
   - `scale`
 - `options` array, required for `single_choice` and `multiple_choice`.
 - `recommended` string, number, or array, optional: Recommended option value. For `multiple_choice`, use an array.
-- `allow_other` boolean, optional: Adds a localized "Other / my own option" choice. The UI shows a visible custom-answer field when the user selects it.
-- `allow_recommend` boolean, optional: Adds a localized "Not sure / let the agent recommend" choice.
+- `allow_other` boolean, optional: Adds the localized "Other / custom answer" option. The UI shows a visible custom-answer field when the user selects it.
+- `allow_recommend` boolean, optional: Adds the localized "Not sure / recommend for me" option.
 - `required` boolean, optional: Whether the user must answer before saving.
 - `default` string, number, or array, optional: Initial value.
 - `show_if` object, optional: Simple dependency that controls whether the question is visible.
@@ -62,18 +113,9 @@ Object option fields:
 
 ## allow_other Answer Behavior
 
-When `allow_other: true` is set on a `single_choice` or `multiple_choice` question, the server adds a built-in option with value `__other__` and a localized label:
+When `allow_other: true` is set on a `single_choice` or `multiple_choice` question, the server adds a built-in option with value `__other__` and a localized label.
 
-- English: `Other / my own option`
-- Russian: `Другое / свой вариант`
-
-If the user selects that option, the UI shows a custom-answer text field directly under the option. The user must type a custom answer or choose a different answer. If the field is empty, the UI shows:
-
-```text
-Enter your own option or choose a different answer.
-```
-
-For Russian questionnaires, the message is localized as `Введите свой вариант или выберите другой ответ.`
+If the user selects that option, the UI shows a custom-answer text field directly under the option. The user must type a custom answer or choose a different answer.
 
 Saved answers preserve both the selected option marker and the custom text:
 
@@ -84,94 +126,36 @@ Saved answers preserve both the selected option marker and the custom text:
 - `other_selected`: whether `__other__` was selected.
 - `other_text`: the typed custom answer.
 - `comment`: optional per-question free-form comment.
+- `display_value`: localized display value for summaries.
 
 For backward compatibility, `other_value` mirrors `other_text`.
 
 ## Per-Question Comments
 
-The UI adds an optional comment textarea under every question:
+The UI adds an optional comment textarea under every question. Comments are saved as `comment` in `answers.json` and included in `answers.md`.
 
-- English label: `Comment`
-- English placeholder: `Add a clarification, constraint, or note if useful...`
-- Russian label: `Комментарий к ответу`
-- Russian placeholder: `Можно добавить уточнение, ограничение или пояснение…`
-
-When present, the comment is saved as `comment` in `answers.json` and included under that question in `answers.md`.
-
-## Saved Answer Examples
-
-Single choice with `other_text`:
+## Saved Answer Example
 
 ```json
 {
   "id": "visual_style",
-  "title": "Какой визуальный стиль выбрать?",
+  "title": "Which visual style should we use?",
   "type": "single_choice",
   "value": "__other__",
   "selected_options": [
     {
       "value": "__other__",
-      "label": "Другое / свой вариант",
+      "label": "Other / custom answer",
       "is_other": true,
       "is_recommendation_request": false
     }
   ],
-  "selected_option_label": "Другое / свой вариант",
-  "selected_option_labels": ["Другое / свой вариант"],
+  "selected_option_label": "Other / custom answer",
+  "selected_option_labels": ["Other / custom answer"],
   "other_selected": true,
-  "other_text": "Строгий интерфейс в стиле банковского кабинета",
-  "comment": "Без декоративных градиентов.",
-  "display_value": "Другое / свой вариант: Строгий интерфейс в стиле банковского кабинета"
-}
-```
-
-Multiple choice with `other_text`:
-
-```json
-{
-  "id": "channels",
-  "title": "Какие каналы нужны?",
-  "type": "multiple_choice",
-  "value": ["email", "__other__"],
-  "selected_options": [
-    {
-      "value": "email",
-      "label": "Email",
-      "is_other": false,
-      "is_recommendation_request": false
-    },
-    {
-      "value": "__other__",
-      "label": "Другое / свой вариант",
-      "is_other": true,
-      "is_recommendation_request": false
-    }
-  ],
-  "selected_option_labels": ["Email", "Другое / свой вариант"],
-  "other_selected": true,
-  "other_text": "Telegram-уведомления для администраторов",
-  "comment": "Email нужен только для итоговых отчетов.",
-  "display_value": [
-    "Email",
-    "Другое / свой вариант: Telegram-уведомления для администраторов"
-  ]
-}
-```
-
-Answer comment without `other_text`:
-
-```json
-{
-  "id": "deadline",
-  "title": "Какой темп работы выбрать?",
-  "type": "single_choice",
-  "value": "mvp",
-  "selected_option_label": "Сначала MVP",
-  "selected_option_labels": ["Сначала MVP"],
-  "other_selected": false,
-  "other_text": "",
-  "comment": "Главное - быстро проверить рабочий сценарий.",
-  "display_value": "Сначала MVP"
+  "other_text": "A restrained banking-style interface",
+  "comment": "Avoid decorative gradients.",
+  "display_value": "Other / custom answer: A restrained banking-style interface"
 }
 ```
 
@@ -226,12 +210,11 @@ Only one operator should be used per `show_if` object.
 
 ```json
 {
-  "language": "en",
   "title": "Landing Page Project Brief",
   "description": "Choose the practical direction for the landing page so the agent can produce a focused implementation plan.",
+  "language": "en",
   "project_context": "The user wants a conversion-focused landing page for a new SaaS product.",
   "metadata": {
-    "created_by": "agent",
     "purpose": "requirements"
   },
   "questions": [

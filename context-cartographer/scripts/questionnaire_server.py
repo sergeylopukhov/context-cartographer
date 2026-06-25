@@ -19,104 +19,106 @@ from urllib.parse import urlparse
 
 
 HOST = "127.0.0.1"
-VERSION = "1.1.1"
+VERSION = "1.2.0"
 SUPPORTED_TYPES = {"single_choice", "multiple_choice", "text", "textarea", "scale"}
 CHOICE_TYPES = {"single_choice", "multiple_choice"}
-SUPPORTED_LANGUAGES = {"en", "ru"}
 NOT_SURE_VALUE = "__not_sure__"
 OTHER_VALUE = "__other__"
 ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 GITIGNORE_CONTENT = "*\n!.gitignore\n"
+DEFAULT_LANGUAGE = "en"
 
 
 UI_STRINGS = {
-    "ru": {
-        "not_sure_label": "Не уверен / порекомендуй сам",
-        "other_label": "Другое / свой вариант",
-        "other_required": "Введите свой вариант или выберите другой ответ.",
-        "required_missing": "Ответьте на обязательные вопросы",
-        "questions_label": "Вопросы",
-        "no_answer": "Нет ответа",
-        "markdown_no_answer": "_Нет ответа_",
-        "markdown_title": "Ответы на анкету",
-        "saved_at": "Сохранено",
-        "source_questionnaire": "Исходная анкета",
-        "description_heading": "Описание анкеты",
-        "project_context_heading": "Контекст проекта",
-        "decisions_heading": "Решения",
-        "hidden_heading": "Скрыто условиями показа",
-        "no_visible_answers": "_Нет сохраненных видимых ответов._",
-        "type_label": "Тип",
-        "answer_label": "Ответ",
-        "comment_label": "Комментарий к ответу",
-        "save_button": "Сохранить ответы",
-        "clear_draft_button": "Очистить локальный черновик",
-        "status_line": "После сохранения файлы появятся в локальной папке проекта.",
-        "eyebrow": "Локальная анкета",
-        "local_answers_title": "Ответы сохраняются локально",
-        "local_answers_description": "Черновик хранится в браузере, итоговые файлы записываются в папку проекта после нажатия кнопки сохранения.",
-        "questions_aria": "Вопросы анкеты",
-        "summary_heading": "Сводка ответов",
-        "progress_answered": "Отвечено",
-        "progress_of": "из",
-        "draft_ready": "Автосохранение черновика готово",
-        "draft_restored": "Локальный черновик восстановлен",
-        "draft_restore_failed": "Не удалось восстановить локальный черновик",
-        "draft_saved": "Черновик сохранен локально",
-        "draft_save_failed": "Не удалось сохранить черновик",
-        "required_question": "Обязательный вопрос",
-        "comment_placeholder": "Можно добавить уточнение, ограничение или пояснение…",
-        "recommended_badge": "рекомендуемый вариант",
-        "recommended_title": "Рекомендуемый вариант",
-        "other_placeholder": "Напишите свой вариант…",
-        "saving": "Сохраняю ответы…",
-        "save_failed": "Не удалось сохранить ответы",
-        "saved_success": "Ответы сохранены. Файлы answers.json и answers.md записаны локально",
-        "clear_success": "Локальный черновик очищен. Сохраненные файлы ответов не изменены.",
-    },
     "en": {
-        "not_sure_label": "Not sure / let the agent recommend",
-        "other_label": "Other / my own option",
-        "other_required": "Enter your own option or choose a different answer.",
-        "required_missing": "Answer the required questions",
-        "questions_label": "Questions",
-        "no_answer": "No answer",
-        "markdown_no_answer": "_No answer_",
-        "markdown_title": "Questionnaire Answers",
-        "saved_at": "Saved",
-        "source_questionnaire": "Source questionnaire",
-        "description_heading": "Questionnaire Description",
-        "project_context_heading": "Project Context",
-        "decisions_heading": "Decisions",
-        "hidden_heading": "Hidden By Display Conditions",
-        "no_visible_answers": "_No saved visible answers._",
-        "type_label": "Type",
-        "answer_label": "Answer",
+        "html_lang": "en",
+        "not_sure_label": "Not sure / recommend for me",
+        "other_label": "Other / custom answer",
+        "other_placeholder": "Write your custom answer...",
+        "other_required": "Enter a custom answer or choose another option.",
+        "required_missing": "Answer the required questions:",
+        "questions_label": "Questions:",
+        "no_answer": "_No answer_",
         "comment_label": "Comment",
-        "save_button": "Save Answers",
-        "clear_draft_button": "Clear Local Draft",
-        "status_line": "After saving, files will appear in the local project folder.",
-        "eyebrow": "Local Questionnaire",
-        "local_answers_title": "Answers Are Saved Locally",
-        "local_answers_description": "The draft is stored in your browser. Final files are written to the project folder after you save.",
+        "comment_placeholder": "Add context, constraints, or clarification...",
+        "comment_prefix": "Comment",
+        "required_question": "Required question",
+        "recommended_badge": "recommended",
+        "recommended_title": "Recommended option",
+        "local_questionnaire": "Local questionnaire",
+        "answers_local_title": "Answers are saved locally",
+        "answers_local_description": "Draft answers stay in the browser. Final files are written to the project folder after saving.",
         "questions_aria": "Questionnaire questions",
-        "summary_heading": "Answer Summary",
-        "progress_answered": "Answered",
-        "progress_of": "of",
+        "progress": "Answered: {answered} of {visible}",
         "draft_ready": "Draft autosave ready",
         "draft_restored": "Local draft restored",
         "draft_restore_failed": "Could not restore local draft",
         "draft_saved": "Draft saved locally",
         "draft_save_failed": "Could not save draft",
-        "required_question": "Required question",
-        "comment_placeholder": "Add a clarification, constraint, or note if useful...",
-        "recommended_badge": "recommended",
-        "recommended_title": "Recommended option",
-        "other_placeholder": "Write your own option...",
+        "save_answers": "Save answers",
+        "clear_draft": "Clear local draft",
+        "after_save_hint": "After saving, files will appear in the local project folder.",
+        "summary_title": "Answer summary",
         "saving": "Saving answers...",
         "save_failed": "Could not save answers",
-        "saved_success": "Answers saved. answers.json and answers.md were written locally",
-        "clear_success": "Local draft cleared. Saved answer files were not changed.",
+        "saved_message": "Answers saved. answers.json and answers.md were written locally: {saved_at}.",
+        "draft_cleared": "Local draft cleared. Saved answer files were not changed.",
+        "markdown_title": "Questionnaire answers",
+        "markdown_saved": "Saved",
+        "markdown_source": "Source questionnaire",
+        "markdown_description": "Questionnaire Description",
+        "markdown_context": "Project Context",
+        "markdown_answers": "Decisions",
+        "markdown_hidden": "Hidden By Display Conditions",
+        "markdown_no_visible": "_No visible saved answers._",
+        "markdown_id": "ID",
+        "markdown_type": "Type",
+        "markdown_answer": "Answer",
+    },
+    "ru": {
+        "html_lang": "ru",
+        "not_sure_label": "Не уверен / порекомендуй сам",
+        "other_label": "Другое / свой вариант",
+        "other_placeholder": "Напишите свой вариант...",
+        "other_required": "Введите свой вариант или выберите другой ответ.",
+        "required_missing": "Ответьте на обязательные вопросы:",
+        "questions_label": "Вопросы:",
+        "no_answer": "_Нет ответа_",
+        "comment_label": "Комментарий к ответу",
+        "comment_placeholder": "Можно добавить уточнение, ограничение или пояснение...",
+        "comment_prefix": "Комментарий",
+        "required_question": "Обязательный вопрос",
+        "recommended_badge": "рекомендуемый вариант",
+        "recommended_title": "Рекомендуемый вариант",
+        "local_questionnaire": "Локальная анкета",
+        "answers_local_title": "Ответы сохраняются локально",
+        "answers_local_description": "Черновик хранится в браузере, итоговые файлы записываются в папку проекта после сохранения.",
+        "questions_aria": "Вопросы анкеты",
+        "progress": "Отвечено: {answered} из {visible}",
+        "draft_ready": "Автосохранение черновика готово",
+        "draft_restored": "Локальный черновик восстановлен",
+        "draft_restore_failed": "Не удалось восстановить локальный черновик",
+        "draft_saved": "Черновик сохранен локально",
+        "draft_save_failed": "Не удалось сохранить черновик",
+        "save_answers": "Сохранить ответы",
+        "clear_draft": "Очистить локальный черновик",
+        "after_save_hint": "После сохранения файлы появятся в локальной папке проекта.",
+        "summary_title": "Сводка ответов",
+        "saving": "Сохраняю ответы...",
+        "save_failed": "Не удалось сохранить ответы",
+        "saved_message": "Ответы сохранены. Файлы answers.json и answers.md записаны локально: {saved_at}.",
+        "draft_cleared": "Локальный черновик очищен. Сохраненные файлы ответов не изменены.",
+        "markdown_title": "Ответы на анкету",
+        "markdown_saved": "Сохранено",
+        "markdown_source": "Исходная анкета",
+        "markdown_description": "Описание анкеты",
+        "markdown_context": "Контекст проекта",
+        "markdown_answers": "Решения",
+        "markdown_hidden": "Скрыто условиями показа",
+        "markdown_no_visible": "_Нет сохраненных видимых ответов._",
+        "markdown_id": "ID",
+        "markdown_type": "Тип",
+        "markdown_answer": "Ответ",
     },
 }
 
@@ -126,35 +128,35 @@ class QuestionnaireError(Exception):
 
 
 DEFAULT_DEMO_QUESTIONNAIRE = {
-    "language": "ru",
-    "title": "Демо-анкета проекта",
-    "description": "Короткая встроенная анкета для проверки локальной формы.",
-    "project_context": "Только демонстрация. Для реальной работы передайте --input .context-cartographer-questionnaire/questions.json.",
+    "title": "Project Questionnaire Demo",
+    "description": "A short built-in questionnaire for checking the local form.",
+    "language": "en",
+    "project_context": "Demo only. For real work, pass --input .project-questionnaire/questions.json.",
     "metadata": {"demo": True},
     "questions": [
         {
             "id": "project_kind",
-            "title": "Какой это тип проекта?",
+            "title": "What type of project is this?",
             "type": "single_choice",
             "required": True,
             "recommended": "web_app",
             "allow_other": True,
             "allow_recommend": True,
             "options": [
-                {"value": "web_app", "label": "Веб-приложение"},
-                {"value": "automation", "label": "Автоматизация"},
-                {"value": "content", "label": "Контент или проектный бриф"},
+                {"value": "web_app", "label": "Web app"},
+                {"value": "automation", "label": "Automation"},
+                {"value": "content", "label": "Content or project brief"},
             ],
         },
         {
             "id": "must_have",
-            "title": "Какой результат самый важный?",
+            "title": "What result matters most?",
             "type": "textarea",
             "required": True,
         },
         {
             "id": "confidence",
-            "title": "Насколько вы уверены в выбранном направлении?",
+            "title": "How confident are you in this direction?",
             "type": "scale",
             "min": 1,
             "max": 5,
@@ -181,52 +183,37 @@ def _require_bool(value: Any, label: str) -> bool:
     return value
 
 
+def _normalize_language(raw: Any) -> str:
+    if raw is None:
+        return DEFAULT_LANGUAGE
+    if not isinstance(raw, str):
+        raise QuestionnaireError("Questionnaire language must be a string.")
+    language = raw.strip().lower()
+    if language not in UI_STRINGS:
+        supported = ", ".join(sorted(UI_STRINGS))
+        raise QuestionnaireError(f"Questionnaire language must be one of: {supported}.")
+    return language
+
+
+def _normalize_ui(raw: Any, language: str) -> dict[str, str]:
+    ui = dict(UI_STRINGS[language])
+    if raw is None:
+        return ui
+    overrides = _require_object(raw, "Questionnaire ui")
+    for key, value in overrides.items():
+        if key not in ui:
+            allowed = ", ".join(sorted(ui))
+            raise QuestionnaireError(f"Questionnaire ui has unknown key '{key}'. Allowed keys: {allowed}.")
+        if not isinstance(value, str):
+            raise QuestionnaireError(f"Questionnaire ui.{key} must be a string.")
+        ui[key] = value
+    return ui
+
+
 def _json_scalar_to_str(value: Any) -> str:
     if isinstance(value, (dict, list)):
         return json.dumps(value, ensure_ascii=False)
     return str(value)
-
-
-def _localized_strings(language: str | None) -> dict[str, str]:
-    return UI_STRINGS.get(language or "en", UI_STRINGS["en"])
-
-
-def _infer_language(data: dict[str, Any]) -> str:
-    explicit = data.get("language", data.get("lang", data.get("locale")))
-    if explicit is not None:
-        if not isinstance(explicit, str):
-            raise QuestionnaireError("Questionnaire language must be a string.")
-        normalized = explicit.strip().lower().split("_", 1)[0].split("-", 1)[0]
-        if normalized not in SUPPORTED_LANGUAGES:
-            raise QuestionnaireError("Questionnaire language must be one of: en, ru.")
-        return normalized
-
-    parts: list[str] = []
-    for key in ("title", "description"):
-        value = data.get(key)
-        if isinstance(value, str):
-            parts.append(value)
-    context = data.get("project_context")
-    if isinstance(context, str):
-        parts.append(context)
-    for question in data.get("questions", []) if isinstance(data.get("questions"), list) else []:
-        if not isinstance(question, dict):
-            continue
-        for key in ("title", "help_text", "help"):
-            value = question.get(key)
-            if isinstance(value, str):
-                parts.append(value)
-        for option in question.get("options", []) if isinstance(question.get("options"), list) else []:
-            if isinstance(option, str):
-                parts.append(option)
-            elif isinstance(option, dict):
-                for key in ("label", "help_text"):
-                    value = option.get(key)
-                    if isinstance(value, str):
-                        parts.append(value)
-
-    joined = "\n".join(parts)
-    return "ru" if re.search(r"[А-Яа-яЁё]", joined) else "en"
 
 
 def _normalize_option(raw: Any, question_id: str, index: int) -> dict[str, Any]:
@@ -421,11 +408,12 @@ def validate_questionnaire(raw: Any, source: str = "<memory>") -> dict[str, Any]
     if not _is_nonempty_string(data.get("title")):
         raise QuestionnaireError("Questionnaire title must be a non-empty string.")
 
-    language = _infer_language(data)
+    language = _normalize_language(data.get("language"))
     normalized: dict[str, Any] = {
-        "language": language,
         "title": data["title"].strip(),
         "description": "",
+        "language": language,
+        "ui": _normalize_ui(data.get("ui"), language),
         "project_context": "",
         "metadata": {},
         "questions": [],
@@ -548,8 +536,8 @@ def question_is_visible(question: dict[str, Any], answers: dict[str, Any]) -> bo
     return True
 
 
-def _option_label_map(question: dict[str, Any], language: str = "en") -> dict[Any, str]:
-    ui = _localized_strings(language)
+def _option_label_map(questionnaire: dict[str, Any], question: dict[str, Any]) -> dict[Any, str]:
+    ui = questionnaire["ui"]
     labels = {option["value"]: option["label"] for option in question.get("options", [])}
     if question.get("allow_recommend"):
         labels[NOT_SURE_VALUE] = ui["not_sure_label"]
@@ -558,12 +546,12 @@ def _option_label_map(question: dict[str, Any], language: str = "en") -> dict[An
     return labels
 
 
-def _display_answer(question: dict[str, Any], raw: Any, language: str = "en") -> str | list[str]:
-    ui = _localized_strings(language)
+def _display_answer(questionnaire: dict[str, Any], question: dict[str, Any], raw: Any) -> str | list[str]:
     answer = _answer_object(raw)
     value = answer.get("value")
     other = str(answer.get("other_text", answer.get("other", ""))).strip()
     qtype = question["type"]
+    other_label = questionnaire["ui"]["other_label"]
 
     if value in (None, ""):
         return ""
@@ -571,19 +559,19 @@ def _display_answer(question: dict[str, Any], raw: Any, language: str = "en") ->
     if qtype == "multiple_choice":
         if not isinstance(value, list):
             value = [value]
-        labels = _option_label_map(question, language)
+        labels = _option_label_map(questionnaire, question)
         rendered: list[str] = []
         for item in value:
             if item == OTHER_VALUE:
-                rendered.append(f"{ui['other_label']}: {other}" if other else ui["other_label"])
+                rendered.append(f"{other_label}: {other}" if other else other_label)
             else:
                 rendered.append(labels.get(item, _json_scalar_to_str(item)))
         return rendered
 
     if qtype == "single_choice":
-        labels = _option_label_map(question, language)
+        labels = _option_label_map(questionnaire, question)
         if value == OTHER_VALUE:
-            return f"{ui['other_label']}: {other}" if other else ui["other_label"]
+            return f"{other_label}: {other}" if other else other_label
         return labels.get(value, _json_scalar_to_str(value))
 
     if qtype == "scale":
@@ -596,10 +584,10 @@ def _comment_text(raw: Any) -> str:
     return str(_answer_object(raw).get("comment", "")).strip()
 
 
-def _selected_options(question: dict[str, Any], raw: Any, language: str = "en") -> list[dict[str, Any]]:
+def _selected_options(questionnaire: dict[str, Any], question: dict[str, Any], raw: Any) -> list[dict[str, Any]]:
     if question["type"] not in CHOICE_TYPES:
         return []
-    labels = _option_label_map(question, language)
+    labels = _option_label_map(questionnaire, question)
     values = _answer_values(raw)
     return [
         {
@@ -623,7 +611,7 @@ def _selected_other_without_text(question: dict[str, Any], raw: Any) -> bool:
 
 
 def _validate_submitted_answers(questionnaire: dict[str, Any], answers: dict[str, Any]) -> None:
-    ui = _localized_strings(questionnaire.get("language"))
+    ui = questionnaire["ui"]
     missing: list[str] = []
     missing_other: list[str] = []
     for question in questionnaire["questions"]:
@@ -635,23 +623,22 @@ def _validate_submitted_answers(questionnaire: dict[str, Any], answers: dict[str
         if _selected_other_without_text(question, raw):
             missing_other.append(question["title"])
     if missing_other:
-        raise QuestionnaireError(ui["other_required"] + " " + ui["questions_label"] + ": " + "; ".join(missing_other))
+        raise QuestionnaireError(f"{ui['other_required']} {ui['questions_label']} " + "; ".join(missing_other))
     if missing:
-        raise QuestionnaireError(ui["required_missing"] + ": " + "; ".join(missing))
+        raise QuestionnaireError(f"{ui['required_missing']} " + "; ".join(missing))
 
 
 def _markdown_escape_inline(value: str) -> str:
     return value.replace("\n", " ").strip()
 
 
-def _markdown_value(value: str | list[str], language: str = "en") -> str:
-    ui = _localized_strings(language)
+def _markdown_value(value: str | list[str], no_answer: str) -> str:
     if isinstance(value, list):
         if not value:
-            return ui["markdown_no_answer"]
+            return no_answer
         return "\n".join(f"  - {_markdown_escape_inline(str(item))}" for item in value)
     if not value:
-        return ui["markdown_no_answer"]
+        return no_answer
     if "\n" in value:
         return "\n\n" + "\n".join(f"> {line}" if line else ">" for line in value.splitlines())
     return _markdown_escape_inline(str(value))
@@ -668,15 +655,14 @@ def build_answer_documents(
 
     _validate_submitted_answers(questionnaire, answers)
     saved_at = saved_at or _dt.datetime.now().astimezone().isoformat(timespec="seconds")
-    language = questionnaire.get("language", "en")
-    ui = _localized_strings(language)
+    ui = questionnaire["ui"]
 
     answer_items: list[dict[str, Any]] = []
     for index, question in enumerate(questionnaire["questions"], start=1):
         visible = question_is_visible(question, answers)
         raw = _answer_object(answers.get(question["id"], {}))
-        display_value = _display_answer(question, raw, language) if visible else ""
-        selected_options = _selected_options(question, raw, language) if visible else []
+        display_value = _display_answer(questionnaire, question, raw) if visible else ""
+        selected_options = _selected_options(questionnaire, question, raw) if visible else []
         other_text = str(raw.get("other_text", raw.get("other", ""))).strip()
         comment = _comment_text(raw)
         answer_items.append(
@@ -702,16 +688,16 @@ def build_answer_documents(
 
     output = {
         "questionnaire": {
-            "language": language,
             "title": questionnaire["title"],
             "description": questionnaire.get("description", ""),
+            "language": questionnaire.get("language", DEFAULT_LANGUAGE),
             "project_context": questionnaire.get("project_context", ""),
             "source_path": str(source_path) if source_path else None,
         },
         "saved_at": saved_at,
         "answers": answer_items,
         "metadata": {
-            "generated_by": "context-cartographer-questionnaire",
+            "generated_by": "interactive-project-questionnaire",
             "version": VERSION,
         },
     }
@@ -719,38 +705,38 @@ def build_answer_documents(
     lines = [
         f"# {ui['markdown_title']}: {questionnaire['title']}",
         "",
-        f"- {ui['saved_at']}: {saved_at}",
+        f"- {ui['markdown_saved']}: {saved_at}",
     ]
     if source_path:
-        lines.append(f"- {ui['source_questionnaire']}: `{source_path}`")
+        lines.append(f"- {ui['markdown_source']}: `{source_path}`")
 
     description = questionnaire.get("description")
     if description:
-        lines.extend(["", f"## {ui['description_heading']}", "", str(description).strip()])
+        lines.extend(["", f"## {ui['markdown_description']}", "", str(description).strip()])
 
     context = questionnaire.get("project_context")
     if context:
         context_text = context if isinstance(context, str) else json.dumps(context, ensure_ascii=False, indent=2)
-        lines.extend(["", f"## {ui['project_context_heading']}", "", str(context_text).strip()])
+        lines.extend(["", f"## {ui['markdown_context']}", "", str(context_text).strip()])
 
-    lines.extend(["", f"## {ui['decisions_heading']}", ""])
+    lines.extend(["", f"## {ui['markdown_answers']}", ""])
     visible_answers = [item for item in answer_items if item["visible"]]
     if not visible_answers:
-        lines.append(ui["no_visible_answers"])
+        lines.append(ui["markdown_no_visible"])
     else:
         for item in visible_answers:
             lines.append(f"### {item['index']}. {item['title']}")
             lines.append("")
-            lines.append(f"- ID: `{item['id']}`")
-            lines.append(f"- {ui['type_label']}: `{item['type']}`")
-            lines.append(f"- {ui['answer_label']}: " + _markdown_value(item["display_value"], language))
+            lines.append(f"- {ui['markdown_id']}: `{item['id']}`")
+            lines.append(f"- {ui['markdown_type']}: `{item['type']}`")
+            lines.append(f"- {ui['markdown_answer']}: " + _markdown_value(item["display_value"], ui["no_answer"]))
             if item["comment"]:
-                lines.append(f"- {ui['comment_label']}: " + _markdown_value(item["comment"], language))
+                lines.append(f"- {ui['comment_prefix']}: " + _markdown_value(item["comment"], ui["no_answer"]))
             lines.append("")
 
     hidden = [item for item in answer_items if not item["visible"]]
     if hidden:
-        lines.extend([f"## {ui['hidden_heading']}", ""])
+        lines.extend([f"## {ui['markdown_hidden']}", ""])
         for item in hidden:
             lines.append(f"- `{item['id']}`: {item['title']}")
 
@@ -845,12 +831,10 @@ def _json_for_script(data: Any) -> str:
 
 def build_html(questionnaire: dict[str, Any]) -> str:
     page_title = html.escape(questionnaire["title"])
-    language = questionnaire.get("language", "en")
-    payload = copy.deepcopy(questionnaire)
-    payload["_ui"] = _localized_strings(language)
-    questionnaire_json = _json_for_script(payload)
+    html_lang = html.escape(questionnaire["ui"].get("html_lang", questionnaire.get("language", DEFAULT_LANGUAGE)))
+    questionnaire_json = _json_for_script(questionnaire)
     return (
-        HTML_TEMPLATE.replace("__LANG__", html.escape(language))
+        HTML_TEMPLATE.replace("__HTML_LANG__", html_lang)
         .replace("__PAGE_TITLE__", page_title)
         .replace("__QUESTIONNAIRE_JSON__", questionnaire_json)
     )
@@ -903,36 +887,36 @@ class QuestionnaireHandler(BaseHTTPRequestHandler):
         if path == "/healthz":
             self._send_json(200, {"ok": True, "version": VERSION})
             return
-        self._send_json(404, {"ok": False, "error": "Не найдено"})
+        self._send_json(404, {"ok": False, "error": "Not found"})
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         if path != "/save":
-            self._send_json(404, {"ok": False, "error": "Не найдено"})
+            self._send_json(404, {"ok": False, "error": "Not found"})
             return
 
         try:
             content_length = int(self.headers.get("Content-Length", "0"))
         except ValueError:
-            self._send_json(400, {"ok": False, "error": "Некорректный Content-Length"})
+            self._send_json(400, {"ok": False, "error": "Invalid Content-Length"})
             return
 
         if content_length <= 0:
-            self._send_json(400, {"ok": False, "error": "Пустое тело запроса"})
+            self._send_json(400, {"ok": False, "error": "Empty request body"})
             return
         if content_length > 1024 * 1024:
-            self._send_json(413, {"ok": False, "error": "Слишком большой объем ответов"})
+            self._send_json(413, {"ok": False, "error": "Submitted answers are too large"})
             return
 
         raw_body = self.rfile.read(content_length)
         try:
             payload = json.loads(raw_body.decode("utf-8"))
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-            self._send_json(400, {"ok": False, "error": f"Некорректный JSON в ответах: {exc}"})
+            self._send_json(400, {"ok": False, "error": f"Invalid answer JSON: {exc}"})
             return
 
         if not isinstance(payload, dict) or not isinstance(payload.get("answers"), dict):
-            self._send_json(400, {"ok": False, "error": "Запрос должен быть объектом с объектом answers"})
+            self._send_json(400, {"ok": False, "error": "Request must be an object with an answers object"})
             return
 
         try:
@@ -946,7 +930,7 @@ class QuestionnaireHandler(BaseHTTPRequestHandler):
             self._send_json(400, {"ok": False, "error": str(exc)})
             return
         except OSError as exc:
-            self._send_json(500, {"ok": False, "error": f"Не удалось сохранить ответы: {exc}"})
+            self._send_json(500, {"ok": False, "error": f"Could not save answers: {exc}"})
             return
 
         self._send_json(200, result)
@@ -963,16 +947,16 @@ def positive_port(value: str) -> int:
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Запустить локальную кликабельную анкету.")
-    parser.add_argument("--input", type=Path, help="Путь к questions.json. Если не указан, используется встроенное демо.")
-    parser.add_argument("--out-dir", type=Path, default=Path(".context-cartographer-questionnaire"), help="Папка для файлов ответов.")
-    parser.add_argument("--port", type=positive_port, default=0, help="Порт на 127.0.0.1. Значение 0 выбирает свободный порт.")
-    parser.add_argument("--validate-only", action="store_true", help="Проверить анкету и выйти без запуска сервера.")
-    parser.add_argument("--print-demo", action="store_true", help="Вывести JSON встроенной демо-анкеты и выйти.")
+    parser = argparse.ArgumentParser(description="Run a local clickable project questionnaire.")
+    parser.add_argument("--input", type=Path, help="Path to questions.json. Uses the built-in demo if omitted.")
+    parser.add_argument("--out-dir", type=Path, default=Path(".project-questionnaire"), help="Directory for answer files.")
+    parser.add_argument("--port", type=positive_port, default=0, help="Port on 127.0.0.1. Use 0 to choose a free port.")
+    parser.add_argument("--validate-only", action="store_true", help="Validate the questionnaire and exit without starting the server.")
+    parser.add_argument("--print-demo", action="store_true", help="Print the built-in demo questionnaire JSON and exit.")
     parser.add_argument(
         "--cleanup",
         action="store_true",
-        help="Удалить сгенерированные файлы анкеты из --out-dir и выйти. .gitignore сохраняется.",
+        help="Delete generated questionnaire files from --out-dir and exit. .gitignore is preserved.",
     )
     return parser.parse_args(argv)
 
@@ -988,16 +972,16 @@ def main(argv: list[str] | None = None) -> int:
         try:
             deleted = cleanup_questionnaire_dir(args.out_dir)
         except OSError as exc:
-            print(f"ERROR: Не удалось очистить '{args.out_dir}': {exc}", file=sys.stderr)
+            print(f"ERROR: Could not clean '{args.out_dir}': {exc}", file=sys.stderr)
             return 2
-        print(f"Очистка завершена для: {args.out_dir}")
-        print("Сохранено: .gitignore")
+        print(f"Cleanup complete for: {args.out_dir}")
+        print("Kept: .gitignore")
         if deleted:
-            print("Удалено:")
+            print("Deleted:")
             for path in deleted:
                 print(f"- {path}")
         else:
-            print("Удалено: ничего")
+            print("Deleted: nothing")
         return 0
 
     try:
@@ -1007,46 +991,46 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.input is None:
-        print("Параметр --input не указан; используется встроенная демо-анкета только для проверки.", file=sys.stderr)
+        print("No --input provided; using the built-in demo questionnaire for testing only.", file=sys.stderr)
 
     if args.validate_only:
         source = str(args.input) if args.input else "embedded demo"
-        print(f"PASS: анкета корректна ({source})")
+        print(f"PASS: questionnaire is valid ({source})")
         return 0
 
     try:
         ensure_work_dir(args.out_dir)
     except OSError as exc:
-        print(f"ERROR: Не удалось подготовить папку ответов '{args.out_dir}': {exc}", file=sys.stderr)
+        print(f"ERROR: Could not prepare answer directory '{args.out_dir}': {exc}", file=sys.stderr)
         return 2
 
     try:
         httpd = QuestionnaireHTTPServer((HOST, args.port), QuestionnaireHandler, questionnaire, args.out_dir, args.input)
     except OSError as exc:
-        print(f"ERROR: Не удалось запустить сервер на {HOST}:{args.port}: {exc}", file=sys.stderr)
+        print(f"ERROR: Could not start server on {HOST}:{args.port}: {exc}", file=sys.stderr)
         return 2
 
     actual_port = httpd.server_address[1]
     url = f"http://{HOST}:{actual_port}/"
     print("")
-    print(f"Анкета запущена по адресу: {url}")
-    print(f"Сервер слушает только: {HOST}")
-    print(f"Ответы будут сохранены в: {args.out_dir / 'answers.json'}")
-    print(f"Markdown-сводка будет сохранена в: {args.out_dir / 'answers.md'}")
-    print("Нажмите Ctrl+C, чтобы остановить сервер.")
+    print(f"Questionnaire URL: {url}")
+    print(f"Listening only on: {HOST}")
+    print(f"Answers JSON will be saved to: {args.out_dir / 'answers.json'}")
+    print(f"Markdown summary will be saved to: {args.out_dir / 'answers.md'}")
+    print("Press Ctrl+C to stop the server.")
     print("", flush=True)
 
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print("\nСервер остановлен.")
+        print("\nServer stopped.")
     finally:
         httpd.server_close()
     return 0
 
 
 HTML_TEMPLATE = """<!doctype html>
-<html lang="__LANG__">
+<html lang="__HTML_LANG__">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1333,13 +1317,13 @@ HTML_TEMPLATE = """<!doctype html>
 
     input[type="text"], textarea {
       width: 100%;
-      min-height: 48px;
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       padding: 13px 14px;
       background: var(--panel);
       color: var(--text);
       font: inherit;
+      min-height: 48px;
       outline: none;
       transition: border-color 170ms ease, box-shadow 170ms ease;
     }
@@ -1426,9 +1410,9 @@ HTML_TEMPLATE = """<!doctype html>
     }
 
     button {
-      min-height: 46px;
       border: 0;
       border-radius: var(--radius-md);
+      min-height: 46px;
       padding: 12px 18px;
       background: var(--primary);
       color: #ffffff;
@@ -1531,21 +1515,21 @@ HTML_TEMPLATE = """<!doctype html>
 <body>
   <main class="app-shell">
     <aside class="intro-panel">
-      <div class="eyebrow" id="eyebrow"></div>
+      <div class="eyebrow" id="eyebrow">Local questionnaire</div>
       <h1 id="title"></h1>
       <p class="description" id="description"></p>
       <div class="context" id="context" hidden></div>
       <div class="meta-card">
-        <strong id="metaTitle"></strong>
-        <small id="metaText"></small>
+        <strong id="answersLocalTitle">Answers are saved locally</strong>
+        <small id="answersLocalDescription">Draft answers stay in the browser. Final files are written to the project folder after saving.</small>
       </div>
     </aside>
 
-    <section class="questionnaire-panel" id="questionnairePanel">
+    <section class="questionnaire-panel" id="questionnairePanel" aria-label="Questionnaire questions">
       <div class="progress-wrap" aria-live="polite">
         <div class="progress-meta">
-          <span id="progressText"></span>
-          <span id="draftStatus"></span>
+          <span id="progressText">Answered: 0 of 0</span>
+          <span id="draftStatus">Draft autosave ready</span>
         </div>
         <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="progressBar"></div></div>
       </div>
@@ -1553,14 +1537,14 @@ HTML_TEMPLATE = """<!doctype html>
       <form id="form"></form>
 
       <section class="actions">
-        <button type="button" id="saveButton"></button>
-        <button type="button" class="ghost" id="clearDraftButton"></button>
-        <span class="status-line" id="statusLine"></span>
+        <button type="button" id="saveButton">Save answers</button>
+        <button type="button" class="ghost" id="clearDraftButton">Clear local draft</button>
+        <span class="status-line" id="afterSaveHint">After saving, files will appear in the local project folder.</span>
         <div class="message" id="message" role="status" aria-live="polite"></div>
       </section>
 
       <section class="summary" id="summary">
-        <h2 id="summaryHeading"></h2>
+        <h2 id="summaryTitle">Answer summary</h2>
         <dl id="summaryList"></dl>
       </section>
     </section>
@@ -1569,51 +1553,52 @@ HTML_TEMPLATE = """<!doctype html>
   <script id="questionnaire-data" type="application/json">__QUESTIONNAIRE_JSON__</script>
   <script>
     const questionnaire = JSON.parse(document.getElementById("questionnaire-data").textContent);
-    const ui = questionnaire._ui || {};
-    const storageKey = "context-cartographer-questionnaire:" + questionnaire.title + ":" + questionnaire.questions.map(q => q.id).join(",");
+    const ui = questionnaire.ui || {};
+    const storageKey = "project-questionnaire:" + questionnaire.title + ":" + questionnaire.questions.map(q => q.id).join(",");
     const answers = {};
     const form = document.getElementById("form");
-    const questionnairePanel = document.getElementById("questionnairePanel");
     const eyebrow = document.getElementById("eyebrow");
     const title = document.getElementById("title");
     const description = document.getElementById("description");
     const context = document.getElementById("context");
-    const metaTitle = document.getElementById("metaTitle");
-    const metaText = document.getElementById("metaText");
+    const answersLocalTitle = document.getElementById("answersLocalTitle");
+    const answersLocalDescription = document.getElementById("answersLocalDescription");
+    const questionnairePanel = document.getElementById("questionnairePanel");
     const progressText = document.getElementById("progressText");
     const progressBar = document.getElementById("progressBar");
     const draftStatus = document.getElementById("draftStatus");
     const message = document.getElementById("message");
     const summary = document.getElementById("summary");
+    const summaryTitle = document.getElementById("summaryTitle");
     const summaryList = document.getElementById("summaryList");
     const saveButton = document.getElementById("saveButton");
     const clearDraftButton = document.getElementById("clearDraftButton");
-    const statusLine = document.getElementById("statusLine");
-    const summaryHeading = document.getElementById("summaryHeading");
+    const afterSaveHint = document.getElementById("afterSaveHint");
 
     function t(key, fallback) {
-      return Object.prototype.hasOwnProperty.call(ui, key) ? ui[key] : fallback;
+      return ui[key] || fallback;
     }
 
-    function applyStaticLabels() {
-      eyebrow.textContent = t("eyebrow", "Local Questionnaire");
-      metaTitle.textContent = t("local_answers_title", "Answers Are Saved Locally");
-      metaText.textContent = t("local_answers_description", "The draft is stored in your browser. Final files are written to the project folder after you save.");
+    function applyUi() {
+      document.documentElement.lang = t("html_lang", questionnaire.language || "en");
+      eyebrow.textContent = t("local_questionnaire", "Local questionnaire");
+      answersLocalTitle.textContent = t("answers_local_title", "Answers are saved locally");
+      answersLocalDescription.textContent = t("answers_local_description", "Draft answers stay in the browser. Final files are written to the project folder after saving.");
       questionnairePanel.setAttribute("aria-label", t("questions_aria", "Questionnaire questions"));
-      saveButton.textContent = t("save_button", "Save Answers");
-      clearDraftButton.textContent = t("clear_draft_button", "Clear Local Draft");
-      statusLine.textContent = t("status_line", "After saving, files will appear in the local project folder.");
-      summaryHeading.textContent = t("summary_heading", "Answer Summary");
       draftStatus.textContent = t("draft_ready", "Draft autosave ready");
+      saveButton.textContent = t("save_answers", "Save answers");
+      clearDraftButton.textContent = t("clear_draft", "Clear local draft");
+      afterSaveHint.textContent = t("after_save_hint", "After saving, files will appear in the local project folder.");
+      summaryTitle.textContent = t("summary_title", "Answer summary");
     }
 
     function optionList(question) {
       const options = Array.isArray(question.options) ? question.options.slice() : [];
       if (question.allow_recommend) {
-        options.push({ value: "__not_sure__", label: t("not_sure_label", "Not sure / let the agent recommend") });
+        options.push({ value: "__not_sure__", label: t("not_sure_label", "Not sure / recommend for me") });
       }
       if (question.allow_other) {
-        options.push({ value: "__other__", label: t("other_label", "Other / my own option") });
+        options.push({ value: "__other__", label: t("other_label", "Other / custom answer") });
       }
       return options;
     }
@@ -1763,7 +1748,7 @@ HTML_TEMPLATE = """<!doctype html>
 
       const textarea = document.createElement("textarea");
       textarea.id = `comment-${question.id}`;
-      textarea.placeholder = t("comment_placeholder", "Add a clarification, constraint, or note if useful...");
+      textarea.placeholder = t("comment_placeholder", "Add context, constraints, or clarification...");
       textarea.value = (answers[question.id] && answers[question.id].comment) || "";
       textarea.addEventListener("input", () => {
         answers[question.id].comment = textarea.value;
@@ -1832,7 +1817,7 @@ HTML_TEMPLATE = """<!doctype html>
           const other = document.createElement("textarea");
           other.className = "other-input";
           other.dataset.questionId = question.id;
-          other.placeholder = t("other_placeholder", "Write your own option...");
+          other.placeholder = t("other_placeholder", "Write your custom answer...");
           other.value = current.other_text || "";
           other.hidden = !input.checked;
           other.addEventListener("input", () => {
@@ -1905,12 +1890,8 @@ HTML_TEMPLATE = """<!doctype html>
     function renderForm() {
       title.textContent = questionnaire.title;
       description.textContent = questionnaire.description || "";
-      if (questionnaire.project_context) {
-        context.hidden = false;
-        context.textContent = typeof questionnaire.project_context === "string"
-          ? questionnaire.project_context
-          : JSON.stringify(questionnaire.project_context, null, 2);
-      }
+      context.hidden = true;
+      context.textContent = "";
 
       form.textContent = "";
       for (const question of questionnaire.questions) {
@@ -1940,7 +1921,9 @@ HTML_TEMPLATE = """<!doctype html>
           if (otherInput) otherInput.hidden = !answerValues(answers[question.id]).includes("__other__");
         }
       }
-      progressText.textContent = `${t("progress_answered", "Answered")}: ${answered} ${t("progress_of", "of")} ${visible}`;
+      progressText.textContent = t("progress", "Answered: {answered} of {visible}")
+        .replace("{answered}", String(answered))
+        .replace("{visible}", String(visible));
       progressBar.style.width = visible ? `${Math.round((answered / visible) * 100)}%` : "0%";
     }
 
@@ -1965,7 +1948,7 @@ HTML_TEMPLATE = """<!doctype html>
 
     function answerDisplay(item) {
       if (Array.isArray(item.display_value)) return item.display_value.join("\\n");
-      return item.display_value || t("no_answer", "No answer");
+      return item.display_value || t("no_answer", "No answer").replace(/^_+|_+$/g, "");
     }
 
     function render_svodka(items) {
@@ -1974,7 +1957,7 @@ HTML_TEMPLATE = """<!doctype html>
         const dt = document.createElement("dt");
         dt.textContent = item.title;
         const dd = document.createElement("dd");
-        const comment = item.comment ? `\\n${t("comment_label", "Comment")}: ${item.comment}` : "";
+        const comment = item.comment ? `\\n${t("comment_prefix", "Comment")}: ${item.comment}` : "";
         dd.textContent = answerDisplay(item) + comment;
         summaryList.appendChild(dt);
         summaryList.appendChild(dd);
@@ -1985,11 +1968,11 @@ HTML_TEMPLATE = """<!doctype html>
     async function saveAnswers() {
       const validation = validate_required();
       if (validation.missingOther.length) {
-        showMessage("error", t("other_required", "Enter your own option or choose a different answer."));
+        showMessage("error", t("other_required", "Enter a custom answer or choose another option."));
         return;
       }
       if (validation.missing.length) {
-        showMessage("error", t("required_missing", "Answer the required questions") + ": " + validation.missing.join("; "));
+        showMessage("error", t("required_missing", "Answer the required questions:") + " " + validation.missing.join("; "));
         return;
       }
       showMessage("success", t("saving", "Saving answers..."));
@@ -2005,7 +1988,7 @@ HTML_TEMPLATE = """<!doctype html>
         if (!response.ok || !result.ok) {
           throw new Error(result.error || t("save_failed", "Could not save answers"));
         }
-        showMessage("success", `${t("saved_success", "Answers saved. answers.json and answers.md were written locally")}: ${result.saved_at}.`);
+        showMessage("success", t("saved_message", "Answers saved. answers.json and answers.md were written locally: {saved_at}.").replace("{saved_at}", result.saved_at));
         render_svodka(result.answers || []);
       } catch (error) {
         showMessage("error", error.message || String(error));
@@ -2020,11 +2003,11 @@ HTML_TEMPLATE = """<!doctype html>
       initializeAnswers();
       renderForm();
       refresh();
-      showMessage("success", t("clear_success", "Local draft cleared. Saved answer files were not changed."));
+      showMessage("success", t("draft_cleared", "Local draft cleared. Saved answer files were not changed."));
     }
 
+    applyUi();
     initializeAnswers();
-    applyStaticLabels();
     renderForm();
     refresh();
     saveButton.addEventListener("click", saveAnswers);

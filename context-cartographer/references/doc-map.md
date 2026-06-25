@@ -110,7 +110,7 @@ Default ignore patterns when `docs/` is owned by project-memory docs:
 # Local agent/project documentation
 AGENTS.md
 docs/
-.context-cartographer-questionnaire/
+.project-questionnaire/
 ```
 
 If `docs/` is already a public docs site, package documentation, or user-facing content folder, do not ignore `docs/` broadly. Ask before choosing a private documentation path or add precise ignore patterns only for project-memory files.
