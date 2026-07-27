@@ -44,6 +44,7 @@ Classify each durable Markdown file:
 - Does each selected root agent instruction file state the selected code-rules mode?
 - Does each selected root agent instruction file keep routine and automatic durable documentation maintenance independent from `context-cartographer`?
 - Does each selected root agent instruction file limit later `context-cartographer` use to setup, audit, migration, cleanup, restructuring, explicit use, or unclear ownership?
+- Does each selected root agent instruction file prohibit creating a new owner during routine maintenance and route missing ownership to `context-cartographer`?
 - If code-rules mode is enabled, does each selected root agent instruction file require reading `docs/code_rules.md` before code and code-adjacent edits?
 - If code-rules mode is disabled, do selected root agent instruction files avoid routing agents to `docs/code_rules.md`?
 - Does `docs/code_rules.md` exist only when the user explicitly selected code-rules mode or when the user chose to preserve an existing file?

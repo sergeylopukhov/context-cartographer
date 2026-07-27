@@ -15,6 +15,8 @@ SCRIPT_PATH = Path(__file__).with_name("questionnaire_server.py")
 UPDATE_SCRIPT_PATH = Path(__file__).with_name("check_update.py")
 FILE_TEMPLATES_PATH = Path(__file__).parents[1] / "references" / "file-templates.md"
 SKILL_PATH = Path(__file__).parents[1] / "SKILL.md"
+SETUP_WORKFLOW_PATH = Path(__file__).parents[1] / "references" / "setup-workflow.md"
+EXISTING_WORKFLOW_PATH = Path(__file__).parents[1] / "references" / "existing-docs-workflow.md"
 REPOSITORY_ROOT = Path(__file__).parents[2]
 CLAUDE_ADAPTER_PATH = REPOSITORY_ROOT / "adapters" / "claude" / "CLAUDE.md"
 CURSOR_ADAPTER_PATH = REPOSITORY_ROOT / "adapters" / "cursor" / "context-cartographer.mdc"
@@ -86,6 +88,8 @@ def main() -> int:
 
         file_templates = FILE_TEMPLATES_PATH.read_text(encoding="utf-8")
         skill_text = SKILL_PATH.read_text(encoding="utf-8")
+        setup_workflow = SETUP_WORKFLOW_PATH.read_text(encoding="utf-8")
+        existing_workflow = EXISTING_WORKFLOW_PATH.read_text(encoding="utf-8")
         skill_frontmatter = parse_simple_frontmatter(skill_text, "SKILL.md")
         assert_true(
             len(skill_text.encode("utf-8")) <= 10_000,
@@ -99,6 +103,27 @@ def main() -> int:
             "automatic durable documentation maintenance already governed by project root instructions" in skill_text,
             "skill metadata does not preserve independent automatic maintenance",
         )
+        assert_true(
+            "always read `references/setup-workflow.md`" in skill_text
+            and "always read `references/existing-docs-workflow.md`" in skill_text,
+            "SKILL.md does not require the scenario workflows",
+        )
+        for required_setup_rule in (
+            "Do not infer code-rules mode or documentation maintenance mode",
+            "Create `docs/architecture.md` as a concise documentation map",
+            "Require later agents to invoke `context-cartographer` before creating a new owner document",
+        ):
+            assert_true(required_setup_rule in setup_workflow, f"setup workflow lost rule: {required_setup_rule}")
+        for required_existing_rule in (
+            "Do not create a new Markdown file during routine maintenance",
+            "Do not require a general cleanup strategy",
+            "Ask for approval before creating the new owner",
+            "Add the new owner to `docs/architecture.md`",
+        ):
+            assert_true(
+                required_existing_rule in existing_workflow,
+                f"existing-docs workflow lost rule: {required_existing_rule}",
+            )
         assert_true(
             "resolve the project root once" in file_templates,
             "root agent template does not require project-root path resolution",
@@ -114,6 +139,11 @@ def main() -> int:
         assert_true(
             "If maintenance mode is `automatic durable maintenance`" in file_templates,
             "root agent template lost automatic durable maintenance",
+        )
+        assert_true(
+            "do not create it during routine maintenance" in file_templates
+            and "Invoke `context-cartographer`" in file_templates,
+            "root agent template does not route missing ownership through the skill",
         )
         if CLAUDE_ADAPTER_PATH.exists() and CURSOR_ADAPTER_PATH.exists():
             claude_adapter = CLAUDE_ADAPTER_PATH.read_text(encoding="utf-8")
@@ -138,6 +168,10 @@ def main() -> int:
                 "do not invoke the skill when ownership is already clear" in claude_adapter
                 and "do not invoke the skill when ownership is already clear" in cursor_adapter,
                 "Claude or Cursor adapter still routes routine maintenance through the skill",
+            )
+            assert_true(
+                "If no existing owner fits" in claude_adapter and "If no existing owner fits" in cursor_adapter,
+                "Claude or Cursor adapter does not route missing ownership through the skill",
             )
         pass_line("skill routing is narrow while root instructions preserve automatic maintenance")
 
