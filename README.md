@@ -23,6 +23,7 @@ It gives an AI a reliable map of the repository: where the important code lives,
 ### Why Use It
 
 - Your AI does not need to rediscover the same project structure every task.
+- Generated root instructions make agents resolve repository paths first and avoid rereading the same full file within one task.
 - Project facts live in small owner docs instead of scattered chat history.
 - Any AI that can read Markdown can use the generated docs.
 - Existing docs are inspected before changes; the skill asks before rewriting, moving, or deleting them.
@@ -111,6 +112,7 @@ Context Cartographer — скилл, который создаёт коротк�
 ### Зачем Это Нужно
 
 - ИИ не изучает проект заново перед каждой задачей.
+- Корневые инструкции требуют сначала определить реальные пути в репозитории и не перечитывать один и тот же файл целиком в рамках одной задачи.
 - Важные факты лежат в небольших Markdown-файлах, а не теряются в истории чатов.
 - Документацию может читать любой ИИ, который умеет работать с Markdown.
 - Существующие docs сначала проверяются; скилл спрашивает перед перезаписью, переносом или удалением.

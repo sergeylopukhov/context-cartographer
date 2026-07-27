@@ -13,6 +13,8 @@ Keep root agent instruction files short. Use the correct root file for the targe
 
 - Short broad prompts are enough. If the user asks to create, finish, fix, improve, clean up, or set up project documentation without details, run the full documentation workflow from a read-only scan; do not ask the user to provide a long prompt.
 - Inspect the repository read-only before proposing documentation changes.
+- Resolve the project root and real file paths before reading project instructions or sources. Use the repository inventory instead of guessing paths from the current directory or another project.
+- In generated root agent instruction files, require agents to reuse files already read during the current task. A second read is allowed only when the file changed, the earlier output was truncated, or a specific unread section is needed; use a targeted range instead of rereading the whole file.
 - Ask when the project goal, documentation ownership, or target file is unclear.
 - In generated root agent instruction files, make conversation-only the default for questions, analysis, brainstorming, and project discussion; require explicit user intent before edits.
 - Never overwrite an existing root agent instruction file or docs file without explicit user approval.
@@ -119,7 +121,7 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 
 ## New Project Workflow
 
-1. Inspect the initial project structure and existing files.
+1. Resolve the project root, inventory real paths with `rg --files`, then inspect the initial project structure and existing files without rereading the same full file.
 2. Identify project profile, stack, audience, language policy, target agent surface, whether the user requested automatic setup, code-rules mode, and documentation maintenance mode.
 3. For broad short prompts, run the bundled questionnaire before edits unless all decision gates were explicitly answered in the prompt.
 4. Ask concise questions if core facts are missing; use the bundled questionnaire for multi-question decisions.
@@ -132,7 +134,7 @@ Questionnaires must bind only to `127.0.0.1`, avoid external dependencies, inclu
 
 ## Existing Project Workflow
 
-1. List files with `rg --files` and targeted reads.
+1. Resolve the project root once, list real paths with `rg --files`, and use targeted reads. Reuse content already read during the task instead of requesting the same full file again.
 2. Detect existing root agent instruction files, `docs/`, README files, architecture docs, product/design/deployment docs, and content docs.
 3. Identify stale references, duplicated facts, oversized docs, missing owners, and files outside the expected documentation structure.
 4. If existing docs or instruction files are present and the prompt did not explicitly delegate cleanup decisions, stop and ask how to handle them: keep as-is, audit only, migrate after approval, or let the agent decide.
