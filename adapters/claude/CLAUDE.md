@@ -13,4 +13,5 @@ Use this adapter only as a small persistent pointer. Keep the full workflow in t
 - Before code or code-adjacent edits, read `docs/code_rules.md` only when root instructions enable code-rules mode.
 - When root instructions define automatic durable documentation maintenance, update the relevant owner docs in the same task after durable behavior, architecture, setup, deployment, staging, test-data, SSH, access, import/export, public URL, WordPress setup, operator-workflow, data-model, public-interface, agent-workflow, or documentation-ownership changes. If automatic mode applies and no docs update is needed, say so in the final response.
 - Perform routine documentation maintenance directly from root instructions and existing owner docs; do not invoke the skill when ownership is already clear.
+- If no existing owner fits or a new Markdown owner is being considered, do not create it during routine maintenance; invoke the skill and follow its missing-owner workflow first.
 - Keep project-memory docs local-only unless the user explicitly asks to track, publish, upload, or deploy them.

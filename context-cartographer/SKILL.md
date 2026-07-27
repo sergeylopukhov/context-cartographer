@@ -45,10 +45,13 @@ Generated root instructions must keep routine maintenance independent from this 
 - Under `automatic durable maintenance`, update the matching owner doc in the same task whenever completed work changes durable behavior, architecture, setup, deployment, staging, test data, access, import/export, public URLs, operator workflow, data model, public interfaces, agent workflow, or documentation ownership.
 - Under `request-only maintenance`, update docs only when explicitly asked and flag likely stale docs.
 - State that routine maintenance uses root instructions and existing owner docs directly without invoking `context-cartographer`.
-- Invoke this skill later only for setup, audit, migration, restructuring, explicit use, or genuinely unclear ownership.
+- If no existing owner file fits, do not create a new Markdown file during routine maintenance. Invoke this skill and follow the missing-owner protocol.
+- Invoke this skill later only for setup, audit, migration, cleanup, restructuring, explicit use, or genuinely unclear ownership.
 
 ## Reference Routing
 
+- For first-time setup, always read `references/setup-workflow.md`; it routes the other required references.
+- For audit, migration, cleanup, restructuring, or unclear ownership, always read `references/existing-docs-workflow.md`; it routes the other required references.
 - Read `references/doc-map.md` before choosing files or ownership.
 - Read `references/file-templates.md` before creating root instructions or `docs/*.md`.
 - Read `references/audit-checklist.md` before auditing an existing repository.
@@ -64,9 +67,9 @@ Generated root instructions must keep routine maintenance independent from this 
 4. Apply the smallest approved documentation-system change.
 5. Verify links, stale filenames, owner coverage, local-only ignore rules, and the independent routine-maintenance instructions.
 
-For a new system, create the minimal core from `references/doc-map.md`, then add only profile files supported by the project.
+For a new system, follow `references/setup-workflow.md`.
 
-For cleanup or migration, preserve durable non-duplicated facts in the most specific owner file. Ask when conflicts or ownership cannot be resolved safely.
+For audit, cleanup, migration, restructuring, or unclear ownership, follow `references/existing-docs-workflow.md`.
 
 ## Questionnaire
 
