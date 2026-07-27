@@ -14,6 +14,10 @@ sys.dont_write_bytecode = True
 SCRIPT_PATH = Path(__file__).with_name("questionnaire_server.py")
 UPDATE_SCRIPT_PATH = Path(__file__).with_name("check_update.py")
 FILE_TEMPLATES_PATH = Path(__file__).parents[1] / "references" / "file-templates.md"
+SKILL_PATH = Path(__file__).parents[1] / "SKILL.md"
+REPOSITORY_ROOT = Path(__file__).parents[2]
+CLAUDE_ADAPTER_PATH = REPOSITORY_ROOT / "adapters" / "claude" / "CLAUDE.md"
+CURSOR_ADAPTER_PATH = REPOSITORY_ROOT / "adapters" / "cursor" / "context-cartographer.mdc"
 
 
 def load_server_module():
@@ -47,6 +51,25 @@ def assert_true(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
+def parse_simple_frontmatter(text: str, source: str) -> dict[str, str]:
+    lines = text.splitlines()
+    assert_true(lines and lines[0] == "---", f"{source} frontmatter is missing")
+
+    values: dict[str, str] = {}
+    for line in lines[1:]:
+        if line == "---":
+            return values
+        if not line or line.startswith((" ", "\t")):
+            continue
+        assert_true(":" in line, f"{source} has malformed frontmatter: {line}")
+        key, value = line.split(":", 1)
+        key = key.strip()
+        assert_true(key not in values, f"{source} has duplicate frontmatter key: {key}")
+        values[key] = value.strip().strip("\"'")
+
+    raise AssertionError(f"{source} frontmatter is not closed")
+
+
 def main() -> int:
     try:
         server = load_server_module()
@@ -62,6 +85,20 @@ def main() -> int:
         pass_line("check_update.py imports and compares versions")
 
         file_templates = FILE_TEMPLATES_PATH.read_text(encoding="utf-8")
+        skill_text = SKILL_PATH.read_text(encoding="utf-8")
+        skill_frontmatter = parse_simple_frontmatter(skill_text, "SKILL.md")
+        assert_true(
+            len(skill_text.encode("utf-8")) <= 10_000,
+            "SKILL.md exceeded the token-conscious 10 KB limit",
+        )
+        assert_true(
+            "Do not use for routine edits" in skill_frontmatter.get("description", ""),
+            "skill metadata does not exclude routine documentation edits",
+        )
+        assert_true(
+            "automatic durable documentation maintenance already governed by project root instructions" in skill_text,
+            "skill metadata does not preserve independent automatic maintenance",
+        )
         assert_true(
             "resolve the project root once" in file_templates,
             "root agent template does not require project-root path resolution",
@@ -70,7 +107,39 @@ def main() -> int:
             "Do not read the same full file again" in file_templates,
             "root agent template does not prevent unnecessary full-file rereads",
         )
-        pass_line("root agent template guards path resolution and repeated reads")
+        assert_true(
+            "Do not invoke `context-cartographer` for routine edits or automatic durable maintenance" in file_templates,
+            "root agent template still routes routine maintenance through the skill",
+        )
+        assert_true(
+            "If maintenance mode is `automatic durable maintenance`" in file_templates,
+            "root agent template lost automatic durable maintenance",
+        )
+        if CLAUDE_ADAPTER_PATH.exists() and CURSOR_ADAPTER_PATH.exists():
+            claude_adapter = CLAUDE_ADAPTER_PATH.read_text(encoding="utf-8")
+            cursor_adapter = CURSOR_ADAPTER_PATH.read_text(encoding="utf-8")
+            cursor_frontmatter = parse_simple_frontmatter(cursor_adapter, "Cursor adapter")
+            for durable_trigger in (
+                "durable behavior",
+                "setup",
+                "data-model",
+                "agent-workflow",
+                "documentation-ownership",
+            ):
+                assert_true(
+                    durable_trigger in claude_adapter and durable_trigger in cursor_adapter,
+                    f"Claude or Cursor adapter lost durable maintenance trigger: {durable_trigger}",
+                )
+            assert_true(
+                cursor_frontmatter.get("alwaysApply") == "true",
+                "Cursor root rule must always load to preserve automatic durable maintenance",
+            )
+            assert_true(
+                "do not invoke the skill when ownership is already clear" in claude_adapter
+                and "do not invoke the skill when ownership is already clear" in cursor_adapter,
+                "Claude or Cursor adapter still routes routine maintenance through the skill",
+            )
+        pass_line("skill routing is narrow while root instructions preserve automatic maintenance")
 
         valid_questionnaire = {
             "title": "Тестовая анкета",

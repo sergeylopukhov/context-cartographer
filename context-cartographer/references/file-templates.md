@@ -41,6 +41,8 @@ Use the same body shape for each target, adjusted only for the agent name and fi
 - Documentation maintenance mode: TODO: replace with `automatic durable maintenance` or `request-only maintenance` before writing this file.
 - If maintenance mode is `automatic durable maintenance`, after any completed work that changes durable project behavior, architecture, setup, deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, data model, public interfaces, agent workflow, or documentation ownership, check whether the matching docs file must be updated. If yes, update it in the same task before the final response; if not, explicitly say that no durable docs update was needed.
 - If maintenance mode is `request-only maintenance`, update docs only when the user explicitly asks, but mention when completed work may have made existing docs stale.
+- Perform routine documentation maintenance directly from these root instructions and the existing owner docs. Do not invoke `context-cartographer` for routine edits or automatic durable maintenance when ownership is already clear.
+- Invoke `context-cartographer` only for first-time setup, documentation audit, migration, cleanup, restructuring, explicit user requests, or genuinely unclear ownership.
 - For product, design, deployment, security, API, integration, content, admin, or advertising questions, read the matching `docs/*.md` owner file first.
 - If documentation ownership is unclear or no suitable file exists, ask before creating a new documentation file.
 ```
@@ -87,6 +89,7 @@ This file is a map, not the full architecture record. Read it when a task affect
 - Documentation maintenance mode: TODO: replace with the mode selected in root agent instructions before writing this file.
 - Under `automatic durable maintenance`, update docs only for durable project changes and do it in the same task; do not record routine implementation notes, transient task status, or obvious edits.
 - Under `request-only maintenance`, do not edit docs unless explicitly asked, but flag likely stale docs in the final response.
+- Routine updates use these instructions and the existing owner docs directly; they do not require `context-cartographer`.
 - If no owner file fits, ask before creating one.
 - After renaming or deleting docs, check stale references with `rg`.
 ```
