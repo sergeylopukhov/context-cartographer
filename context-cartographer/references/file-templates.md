@@ -31,6 +31,8 @@ Use the same body shape for each target, adjusted only for the agent name and fi
 - Treat questions, analysis, brainstorming, and project discussion as conversation-only by default. Do not edit files, run mutating commands, or make code changes unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
 - If the user's intent is ambiguous, ask whether they want discussion only or actual file changes before editing.
 - If the goal is unclear and cannot be safely inferred, ask before acting.
+- At the start of a task, resolve the project root once and locate files from the repository inventory (`rg --files` or an equivalent file list). Treat documentation paths as project-root-relative; do not guess paths from the current directory or reuse paths from another project.
+- Keep track of project files already read during the current task and reuse their contents. Do not read the same full file again unless it changed, the earlier output was truncated, or a specific unread section is required; in those cases, read only the needed range.
 - Treat project-memory docs as local-only: do not commit, push, upload, publish, or deploy them unless explicitly requested.
 - Code-rules mode: TODO: replace with `use code rules file` or `do not use code rules file` before writing this file.
 - If code-rules mode is `use code rules file`, read `docs/code_rules.md` before changing code or code-adjacent project files such as tests, migrations, scripts, build config, deployment config, or application behavior.

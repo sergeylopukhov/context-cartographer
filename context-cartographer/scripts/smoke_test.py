@@ -13,6 +13,7 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 SCRIPT_PATH = Path(__file__).with_name("questionnaire_server.py")
 UPDATE_SCRIPT_PATH = Path(__file__).with_name("check_update.py")
+FILE_TEMPLATES_PATH = Path(__file__).parents[1] / "references" / "file-templates.md"
 
 
 def load_server_module():
@@ -59,6 +60,17 @@ def main() -> int:
         assert_true(updater.should_check({}, 1, False), "empty cache should trigger update check")
         assert_true(not updater.should_check({"checked_at": updater.time.time()}, 1, False), "fresh cache should skip update check")
         pass_line("check_update.py imports and compares versions")
+
+        file_templates = FILE_TEMPLATES_PATH.read_text(encoding="utf-8")
+        assert_true(
+            "resolve the project root once" in file_templates,
+            "root agent template does not require project-root path resolution",
+        )
+        assert_true(
+            "Do not read the same full file again" in file_templates,
+            "root agent template does not prevent unnecessary full-file rereads",
+        )
+        pass_line("root agent template guards path resolution and repeated reads")
 
         valid_questionnaire = {
             "title": "Тестовая анкета",

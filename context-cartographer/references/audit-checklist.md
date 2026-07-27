@@ -4,7 +4,10 @@ Use this checklist before changing existing project documentation.
 
 ## Repository Scan
 
+- Resolve and record the project root before constructing any project file path.
 - Run `rg --files` from the project root.
+- Use paths from that inventory instead of guessing paths from the current directory or another project.
+- Reuse files already read during the current task; reread only a changed file, truncated output, or a specific unread range.
 - Identify the project profile: UI app/site/SaaS, backend/API, bot/automation, library/package, content/SEO, ecommerce/payments, data/ML, infra/devops, mobile, internal tool, or mixed project.
 - Identify the stack from package files, framework files, config files, and folder names.
 - Find existing project instructions: `AGENTS.md`, `CLAUDE.md`, `.claude/`, `.cursor/`, `.cursorrules`, README files, or docs indexes.
@@ -37,6 +40,7 @@ Classify each durable Markdown file:
 - Is each selected root agent instruction file short enough to act as a router?
 - Does the selected target match the file: `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or multiple thin adapters for multi-agent use?
 - Does each selected root agent instruction file distinguish conversation-only requests from explicit edit/implementation requests?
+- Does each selected root agent instruction file require resolving project-root-relative paths before reads and prevent unnecessary full-file rereads during one task?
 - Does each selected root agent instruction file state the selected code-rules mode?
 - If code-rules mode is enabled, does each selected root agent instruction file require reading `docs/code_rules.md` before code and code-adjacent edits?
 - If code-rules mode is disabled, do selected root agent instruction files avoid routing agents to `docs/code_rules.md`?
