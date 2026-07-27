@@ -16,7 +16,7 @@ Before changing existing documentation, resolve:
 
 Generic permission to decide cleanup does not authorize choosing code-rules mode or documentation maintenance mode.
 
-For a targeted missing-owner case, keep unrelated existing docs as-is. Do not require a general cleanup strategy; request approval only for the proposed owner file and its routing-map update.
+For a targeted missing-owner case, keep unrelated existing docs as-is. Do not require a general cleanup strategy or ask for approval to create the owner file and its routing-map entry.
 
 ## Required References
 
@@ -36,7 +36,7 @@ Read:
    - current file;
    - topic owner;
    - planned keep, update, create, move, merge, rename, or delete action.
-5. Ask before destructive or ownership-changing actions unless the user explicitly approved those exact actions or delegated the cleanup decision.
+5. Ask before destructive actions unless the user explicitly approved those exact actions or delegated the cleanup decision. Creating a justified missing owner and adding its routing entry is not a destructive action and requires no question.
 
 ## Missing Owner Protocol
 
@@ -47,8 +47,9 @@ When a durable fact does not fit any existing owner:
 3. Read `doc-map.md` and the current `docs/architecture.md`.
 4. Check whether an existing owner can accept the fact without mixing responsibilities.
 5. Propose a new owner only when the topic is durable, will recur, and would create noise or duplication elsewhere.
-6. Ask for approval before creating the new owner; this approval is scoped to that owner and its routing entry.
+6. Under automatic durable maintenance, create the smallest justified owner automatically without asking for approval.
 7. Add the new owner to `docs/architecture.md` and update routing rules in the same task.
+8. Do not ask a question merely because a new Markdown file is needed. If some facts remain uncertain, use `TODO: clarify` without blocking automatic maintenance.
 
 ## Migration And Cleanup
 

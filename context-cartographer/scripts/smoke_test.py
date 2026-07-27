@@ -117,7 +117,8 @@ def main() -> int:
         for required_existing_rule in (
             "Do not create a new Markdown file during routine maintenance",
             "Do not require a general cleanup strategy",
-            "Ask for approval before creating the new owner",
+            "create the smallest justified owner automatically without asking for approval",
+            "Do not ask a question merely because a new Markdown file is needed",
             "Add the new owner to `docs/architecture.md`",
         ):
             assert_true(
@@ -141,9 +142,13 @@ def main() -> int:
             "root agent template lost automatic durable maintenance",
         )
         assert_true(
-            "do not create it during routine maintenance" in file_templates
-            and "Invoke `context-cartographer`" in file_templates,
+            "Invoke `context-cartographer`" in file_templates
+            and "create the smallest justified owner" in file_templates,
             "root agent template does not route missing ownership through the skill",
+        )
+        assert_true(
+            "without asking merely for permission to create a Markdown file" in file_templates,
+            "root agent template still asks before automatic missing-owner creation",
         )
         if CLAUDE_ADAPTER_PATH.exists() and CURSOR_ADAPTER_PATH.exists():
             claude_adapter = CLAUDE_ADAPTER_PATH.read_text(encoding="utf-8")
@@ -172,6 +177,11 @@ def main() -> int:
             assert_true(
                 "If no existing owner fits" in claude_adapter and "If no existing owner fits" in cursor_adapter,
                 "Claude or Cursor adapter does not route missing ownership through the skill",
+            )
+            assert_true(
+                "without asking merely for permission to create a Markdown file" in claude_adapter
+                and "without asking merely for permission to create a Markdown file" in cursor_adapter,
+                "Claude or Cursor adapter still asks before automatic missing-owner creation",
             )
         pass_line("skill routing is narrow while root instructions preserve automatic maintenance")
 

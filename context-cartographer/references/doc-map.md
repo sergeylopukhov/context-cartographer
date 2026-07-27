@@ -97,7 +97,7 @@ Suggest these only when the project actually needs them:
 - Under request-only maintenance, do not update docs after later tasks unless the user explicitly asks, but mention likely stale docs when relevant.
 - Do not create UI, design, product, deployment, or security files unless repo evidence or user intent supports them.
 - Do not create conditional files merely because they might be useful later.
-- If no existing owner file fits, ask before creating a new documentation file.
+- Under automatic durable maintenance, if no existing owner file fits, create the smallest evidence-supported owner automatically, link it from `docs/architecture.md`, and do not ask merely because a new Markdown file is needed.
 - If a file already exists, merge surgically instead of replacing it.
 - Do not move public repo docs or user-facing content into `docs/` automatically.
 
