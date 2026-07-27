@@ -1,4 +1,4 @@
 interface:
   display_name: "Context Cartographer"
-  short_description: "Map and maintain project docs"
-  default_prompt: "Use $context-cartographer and bring this project's documentation into shape."
+  short_description: "Set up and restructure project docs"
+  default_prompt: "Use $context-cartographer to set up, audit, migrate, or restructure this project's documentation."

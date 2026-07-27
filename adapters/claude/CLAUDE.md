@@ -2,7 +2,7 @@
 
 Use this adapter only as a small persistent pointer. Keep the full workflow in the `context-cartographer` skill.
 
-- For project documentation setup, audit, cleanup, `CLAUDE.md`, `architecture.md`, docs maps, or local agent-memory docs, use `/context-cartographer` when the skill is installed.
+- For project documentation setup, audit, migration, cleanup, restructuring, or unclear ownership, use `/context-cartographer` when the skill is installed.
 - In Claude Code projects, prefer `CLAUDE.md` as the root agent instruction file. Do not create `AGENTS.md` unless the user also wants Codex or multi-agent support.
 - If the skill is not installed, ask the user to install it into `~/.claude/skills/context-cartographer/` or `.claude/skills/context-cartographer/` before doing broad documentation migration.
 - Treat short broad prompts such as "доделай документацию" or "bring docs into shape" as a request to run the full context-cartographer workflow; do not require a long prompt.
@@ -11,5 +11,6 @@ Use this adapter only as a small persistent pointer. Keep the full workflow in t
 - Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
 - Before changing existing docs, scan read-only and show the proposed docs map: current docs, topic owners, and planned create/update/delete actions.
 - Before code or code-adjacent edits, read `docs/code_rules.md` only when root instructions enable code-rules mode.
-- When root instructions define automatic durable documentation maintenance, update the relevant owner docs in the same task after deployment, staging, test-data, SSH, import/export, public URL, WordPress setup, operator-workflow, architecture, or public-interface changes. If automatic mode applies and no docs update is needed, say so in the final response.
+- When root instructions define automatic durable documentation maintenance, update the relevant owner docs in the same task after durable behavior, architecture, setup, deployment, staging, test-data, SSH, access, import/export, public URL, WordPress setup, operator-workflow, data-model, public-interface, agent-workflow, or documentation-ownership changes. If automatic mode applies and no docs update is needed, say so in the final response.
+- Perform routine documentation maintenance directly from root instructions and existing owner docs; do not invoke the skill when ownership is already clear.
 - Keep project-memory docs local-only unless the user explicitly asks to track, publish, upload, or deploy them.
