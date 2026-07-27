@@ -43,9 +43,9 @@ Use the same body shape for each target, adjusted only for the agent name and fi
 - If maintenance mode is `request-only maintenance`, update docs only when the user explicitly asks, but mention when completed work may have made existing docs stale.
 - Perform routine documentation maintenance directly from these root instructions and the existing owner docs. Do not invoke `context-cartographer` for routine edits or automatic durable maintenance when ownership is already clear.
 - Invoke `context-cartographer` only for first-time setup, documentation audit, migration, cleanup, restructuring, explicit user requests, or genuinely unclear ownership.
-- If no existing owner file fits or a new Markdown owner is being considered, do not create it during routine maintenance. Invoke `context-cartographer` and follow its missing-owner workflow first.
+- If no existing owner file fits or a new Markdown owner is being considered, invoke `context-cartographer` and follow its missing-owner workflow. Under automatic durable maintenance, create the smallest justified owner and update `docs/architecture.md` without asking merely for permission to create a Markdown file.
 - For product, design, deployment, security, API, integration, content, admin, or advertising questions, read the matching `docs/*.md` owner file first.
-- If documentation ownership is unclear or no suitable file exists, ask before creating a new documentation file.
+- If documentation ownership is unclear or no suitable file exists under automatic durable maintenance, classify the topic, create the smallest justified owner automatically, and update the documentation map.
 ```
 
 ## docs/architecture.md
@@ -92,7 +92,7 @@ This file is a map, not the full architecture record. Read it when a task affect
 - Under `request-only maintenance`, do not edit docs unless explicitly asked, but flag likely stale docs in the final response.
 - Routine updates use these instructions and the existing owner docs directly; they do not require `context-cartographer`.
 - If no owner file fits, invoke `context-cartographer` before proposing or creating a new owner.
-- If no owner file fits, ask before creating one.
+- Under `automatic durable maintenance`, if no owner file fits, create the smallest justified owner automatically and add it to this map without asking merely because a new Markdown file is needed.
 - After renaming or deleting docs, check stale references with `rg`.
 ```
 
@@ -235,7 +235,7 @@ Treat agent-written code like code from a new contributor: useful, but not trust
 - Under `automatic durable maintenance`, after any completed work that changes deployment, staging, test data, SSH access, import/export flow, public URLs, WordPress setup, operator workflow, setup, architecture, data model, public interfaces, agent workflow, or documentation ownership, check whether `docs/DEPLOYMENT.md`, `docs/ADMIN.md`, `docs/architecture.md`, `docs/SECURITY.md`, or another owner doc must be updated. If yes, update it in the same task before the final response; if not, explicitly say that no durable docs update was needed.
 - Under `request-only maintenance`, update docs only when the user explicitly asks, but mention if completed work likely made docs stale.
 - Do not record routine implementation notes, transient task status, or obvious edits.
-- If documentation ownership is unclear, ask before creating a new docs file.
+- If documentation ownership is unclear under `automatic durable maintenance`, invoke `context-cartographer`, create the smallest justified owner automatically, and update `docs/architecture.md` without asking merely for permission to create a docs file.
 
 ## 8. Finish With Evidence
 

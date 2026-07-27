@@ -47,7 +47,7 @@ The skill creates only the documentation the project needs:
 1. The agent scans the repository in read-only mode.
 2. If decisions are needed, it asks through a local clickable questionnaire.
 3. It proposes a documentation map before editing existing docs.
-4. It creates or updates the approved docs.
+4. It creates or updates the selected docs.
 5. Future AI agents use those docs instead of spending context on repeated discovery.
 
 ### Updates

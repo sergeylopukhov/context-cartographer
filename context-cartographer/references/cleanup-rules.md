@@ -69,19 +69,14 @@ After deletion:
 
 ## New Owner Files
 
-Ask before creating a new documentation owner file when:
-
-- no existing owner file fits;
-- the topic is temporary or one-off;
-- the new file would overlap with an existing owner;
-- the project does not yet have a docs structure.
-
 Create a new owner file when:
 
 - the topic is durable;
 - several future tasks will need it;
 - putting it elsewhere would create noise or duplication;
-- the user approves the new owner.
+- no existing owner can hold it without mixing responsibilities.
+
+Under automatic durable maintenance, create that owner and update `docs/architecture.md` without asking for approval. Do not create a separate owner for temporary, one-off, or overlapping material; place durable facts in the closest existing owner instead.
 
 ## What Not To Do
 

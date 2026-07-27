@@ -45,7 +45,7 @@ Generated root instructions must keep routine maintenance independent from this 
 - Under `automatic durable maintenance`, update the matching owner doc in the same task whenever completed work changes durable behavior, architecture, setup, deployment, staging, test data, access, import/export, public URLs, operator workflow, data model, public interfaces, agent workflow, or documentation ownership.
 - Under `request-only maintenance`, update docs only when explicitly asked and flag likely stale docs.
 - State that routine maintenance uses root instructions and existing owner docs directly without invoking `context-cartographer`.
-- If no existing owner file fits, do not create a new Markdown file during routine maintenance. Invoke this skill and follow the missing-owner protocol.
+- If no existing owner file fits, invoke this skill and follow the missing-owner protocol. Under automatic durable maintenance, classify and create the smallest justified owner automatically without asking solely for permission to create a Markdown file.
 - Invoke this skill later only for setup, audit, migration, cleanup, restructuring, explicit use, or genuinely unclear ownership.
 
 ## Reference Routing
@@ -64,7 +64,7 @@ Generated root instructions must keep routine maintenance independent from this 
 1. Resolve the project root and inventory paths with `rg --files`.
 2. Classify the project profile, selected agent target, existing docs, ownership, code-rules mode, and maintenance mode.
 3. For existing docs, show a compact map of current files, topic owners, and planned create/update/delete actions before editing.
-4. Apply the smallest approved documentation-system change.
+4. Apply the smallest justified documentation-system change within the user's authorized scope.
 5. Verify links, stale filenames, owner coverage, local-only ignore rules, and the independent routine-maintenance instructions.
 
 For a new system, follow `references/setup-workflow.md`.
