@@ -16,14 +16,16 @@ Resolve these decisions before writing root instructions or project-memory docs:
 
 Do not infer code-rules mode or documentation maintenance mode. Both are blocking decisions without defaults.
 
-If more than two decisions are missing, use the bundled questionnaire from `question_schema.md`. Match the questionnaire language to the user or project language.
+Choose the least disruptive question interface that preserves the required decisions. Ask one blocking decision directly, use a suitable native structured-input tool for a small independent set, or use the bundled questionnaire from `question_schema.md` for a broad independent baseline or cross-client fallback. Match the question language to the user or project language.
+
+If answers depend on earlier decisions, conflict with repository evidence, or leave material terminology or ownership ambiguity, read `decision-discovery.md` and run its adaptive workflow. Do not force a fixed questionnaire merely because several fields are missing.
 
 ## Read-Only Discovery
 
 1. Resolve the project root.
 2. Run `rg --files` from that root.
 3. Ignore dependency, cache, generated, vendor, and build directories unless they are directly relevant.
-4. Identify the stack, entry points, project profile, public interfaces, deployment or release flow, security-sensitive areas, integrations, and operator workflows.
+4. Identify the stack, entry points, project profile, public interfaces, deployment or release flow, security-sensitive areas, integrations, and operator workflows. When safe delegation is available, independent read-only areas may be inspected in parallel; give each worker a distinct scope and synthesize the evidence in the primary agent.
 5. Inventory existing `AGENTS.md`, `CLAUDE.md`, Cursor rules, README files, docs, ignore rules, and public documentation.
 6. Reuse files already read during the task. Reread only changed files, truncated output, or a specific unread range.
 
@@ -36,6 +38,7 @@ Read:
 - `doc-map.md` to choose the minimal core, project profile, topic owners, and conditional files;
 - `file-templates.md` before creating root instructions or any `docs/*.md`;
 - `question_schema.md` when a questionnaire is required.
+- `decision-discovery.md` when decisions are dependent, conflicting, or complex enough to need resumable state.
 
 Read profile-specific source files from the project before documenting them. Mark unknown durable facts as `TODO: clarify`.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Smoke tests for the interactive project questionnaire skill."""
+"""Behavioral smoke tests for Context Cartographer and its local tools."""
 
 from __future__ import annotations
 
@@ -13,11 +13,14 @@ from pathlib import Path
 sys.dont_write_bytecode = True
 SCRIPT_PATH = Path(__file__).with_name("questionnaire_server.py")
 UPDATE_SCRIPT_PATH = Path(__file__).with_name("check_update.py")
+DECISION_STATE_SCRIPT_PATH = Path(__file__).with_name("decision_state.py")
 FILE_TEMPLATES_PATH = Path(__file__).parents[1] / "references" / "file-templates.md"
 SKILL_PATH = Path(__file__).parents[1] / "SKILL.md"
 SETUP_WORKFLOW_PATH = Path(__file__).parents[1] / "references" / "setup-workflow.md"
 EXISTING_WORKFLOW_PATH = Path(__file__).parents[1] / "references" / "existing-docs-workflow.md"
+DECISION_DISCOVERY_PATH = Path(__file__).parents[1] / "references" / "decision-discovery.md"
 REPOSITORY_ROOT = Path(__file__).parents[2]
+README_PATH = REPOSITORY_ROOT / "README.md"
 CLAUDE_ADAPTER_PATH = REPOSITORY_ROOT / "adapters" / "claude" / "CLAUDE.md"
 CURSOR_ADAPTER_PATH = REPOSITORY_ROOT / "adapters" / "cursor" / "context-cartographer.mdc"
 
@@ -35,6 +38,15 @@ def load_update_module():
     spec = importlib.util.spec_from_file_location("check_update", UPDATE_SCRIPT_PATH)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Could not load {UPDATE_SCRIPT_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_decision_state_module():
+    spec = importlib.util.spec_from_file_location("decision_state", DECISION_STATE_SCRIPT_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load {DECISION_STATE_SCRIPT_PATH}")
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -86,10 +98,15 @@ def main() -> int:
         assert_true(not updater.should_check({"checked_at": updater.time.time()}, 1, False), "fresh cache should skip update check")
         pass_line("check_update.py imports and compares versions")
 
+        decision_state = load_decision_state_module()
+        pass_line("decision_state.py imports cleanly")
+
         file_templates = FILE_TEMPLATES_PATH.read_text(encoding="utf-8")
         skill_text = SKILL_PATH.read_text(encoding="utf-8")
         setup_workflow = SETUP_WORKFLOW_PATH.read_text(encoding="utf-8")
         existing_workflow = EXISTING_WORKFLOW_PATH.read_text(encoding="utf-8")
+        decision_discovery = DECISION_DISCOVERY_PATH.read_text(encoding="utf-8")
+        readme_text = README_PATH.read_text(encoding="utf-8")
         skill_frontmatter = parse_simple_frontmatter(skill_text, "SKILL.md")
         assert_true(
             len(skill_text.encode("utf-8")) <= 10_000,
@@ -107,6 +124,26 @@ def main() -> int:
             "always read `references/setup-workflow.md`" in skill_text
             and "always read `references/existing-docs-workflow.md`" in skill_text,
             "SKILL.md does not require the scenario workflows",
+        )
+        assert_true(
+            "Choose the interaction method by task shape, not by a fixed question count" in skill_text,
+            "SKILL.md still routes questions by an arbitrary count",
+        )
+        assert_true(
+            "Never create `CONTEXT.md`, `CONTEXT-MAP.md`, or another parallel source of truth" in decision_discovery,
+            "adaptive discovery can create a parallel documentation system",
+        )
+        removed_cursor_copy_command = "cp adapters/cursor/" + "context-cartographer.mdc"
+        assert_true(removed_cursor_copy_command not in readme_text, "README references the removed Cursor adapter file")
+        public_skill_text = "\n".join(
+            path.read_text(encoding="utf-8")
+            for path in sorted(Path(__file__).parents[1].rglob("*"))
+            if path.is_file() and path.suffix in {".md", ".py", ".yaml"}
+        ) + readme_text
+        forbidden_reference = "gri" + "ll"
+        assert_true(
+            forbidden_reference not in public_skill_text.lower(),
+            "skill contains an unwanted external interview-skill reference",
         )
         for required_setup_rule in (
             "Do not infer code-rules mode or documentation maintenance mode",
@@ -249,6 +286,97 @@ def main() -> int:
 
         with tempfile.TemporaryDirectory() as temp_name:
             temp_dir = Path(temp_name)
+
+            valid_state = {
+                "version": 1,
+                "topic": "Documentation setup",
+                "status": "active",
+                "facts": [
+                    {
+                        "id": "fact_stack",
+                        "statement": "The project uses Python.",
+                        "source": "pyproject.toml",
+                        "status": "verified",
+                    }
+                ],
+                "conflicts": [
+                    {
+                        "id": "conflict_docs",
+                        "description": "README and runtime disagree about the docs root.",
+                        "status": "resolved",
+                        "resolution": "Use the runtime path.",
+                    }
+                ],
+                "decisions": [
+                    {
+                        "id": "agent_target",
+                        "question": "Which agent target is required?",
+                        "status": "resolved",
+                        "depends_on": [],
+                        "conflicts": [],
+                        "recommendation": "Codex",
+                        "answer": "Codex",
+                    },
+                    {
+                        "id": "code_rules_mode",
+                        "question": "Should code rules be used?",
+                        "status": "pending",
+                        "depends_on": ["agent_target"],
+                        "conflicts": ["conflict_docs"],
+                        "recommendation": None,
+                        "answer": None,
+                    },
+                ],
+                "out_of_scope": [],
+            }
+            normalized_state = decision_state.validate_state(valid_state)
+            state_summary = decision_state.summarize_state(normalized_state)
+            assert_true(state_summary["frontier"] == ["code_rules_mode"], "decision frontier was computed incorrectly")
+            assert_true(not state_summary["ready"], "incomplete decision state was marked ready")
+            pass_line("decision state computes dependency-aware frontier")
+
+            completed_state = json.loads(json.dumps(valid_state))
+            completed_state["status"] = "ready_for_confirmation"
+            completed_state["decisions"][1]["status"] = "resolved"
+            completed_state["decisions"][1]["answer"] = "Do not use code rules"
+            completed_summary = decision_state.summarize_state(decision_state.validate_state(completed_state))
+            assert_true(completed_summary["ready"], "completed decision state was not marked ready")
+            assert_true(completed_summary["frontier"] == [], "completed state still has a frontier")
+            pass_line("decision state accepts a fully resolved confirmation gate")
+
+            cyclic_state = json.loads(json.dumps(valid_state))
+            cyclic_state["decisions"][0]["depends_on"] = ["code_rules_mode"]
+            try:
+                decision_state.validate_state(cyclic_state)
+            except decision_state.DecisionStateError as exc:
+                assert_true("dependency cycle" in str(exc), "dependency cycle produced an unclear error")
+                pass_line("decision state rejects dependency cycles")
+            else:
+                raise AssertionError("decision dependency cycle unexpectedly passed")
+
+            premature_state = json.loads(json.dumps(valid_state))
+            premature_state["status"] = "confirmed"
+            try:
+                decision_state.validate_state(premature_state)
+            except decision_state.DecisionStateError as exc:
+                assert_true("requires all decisions" in str(exc), "premature confirmation produced an unclear error")
+                pass_line("decision state rejects premature confirmation")
+            else:
+                raise AssertionError("premature confirmed state unexpectedly passed")
+
+            out_of_order_state = json.loads(json.dumps(valid_state))
+            out_of_order_state["decisions"][0]["status"] = "pending"
+            out_of_order_state["decisions"][0]["answer"] = None
+            out_of_order_state["decisions"][1]["status"] = "resolved"
+            out_of_order_state["decisions"][1]["answer"] = "Do not use code rules"
+            try:
+                decision_state.validate_state(out_of_order_state)
+            except decision_state.DecisionStateError as exc:
+                assert_true("resolved before dependencies" in str(exc), "out-of-order resolution produced an unclear error")
+                pass_line("decision state rejects out-of-order resolution")
+            else:
+                raise AssertionError("out-of-order resolved decision unexpectedly passed")
+
             valid_path = temp_dir / "questions.json"
             valid_path.write_text(json.dumps(valid_questionnaire, indent=2), encoding="utf-8")
 
@@ -260,6 +388,31 @@ def main() -> int:
             direct = server.validate_questionnaire(valid_questionnaire)
             assert_true(direct["questions"][0]["id"] == "audience", "direct validation returned unexpected data")
             pass_line("schema validation accepts valid data")
+
+            cyclic_questionnaire = {
+                "title": "Cyclic questionnaire",
+                "questions": [
+                    {
+                        "id": "first",
+                        "title": "First",
+                        "type": "text",
+                        "show_if": {"question_id": "second", "is_answered": True},
+                    },
+                    {
+                        "id": "second",
+                        "title": "Second",
+                        "type": "text",
+                        "show_if": {"question_id": "first", "is_answered": True},
+                    },
+                ],
+            }
+            try:
+                server.validate_questionnaire(cyclic_questionnaire)
+            except server.QuestionnaireError as exc:
+                assert_true("dependency cycle" in str(exc), "question cycle produced an unclear error")
+                pass_line("questionnaire rejects conditional dependency cycles")
+            else:
+                raise AssertionError("questionnaire dependency cycle unexpectedly passed")
 
             english_questionnaire = dict(valid_questionnaire)
             english_questionnaire["title"] = "Smoke Test Questionnaire"
@@ -300,6 +453,10 @@ def main() -> int:
                 "confidence": {"value": 4, "comment": "Достаточно уверенно."},
             }
             output, markdown = server.build_answer_documents(loaded, answers, source_path=valid_path)
+            assert_true(
+                output["metadata"]["generated_by"] == "context-cartographer-questionnaire",
+                "questionnaire output carries stale generator metadata",
+            )
             assert_true(output["answers"][0]["other_selected"] is True, "allow_other was not preserved")
             assert_true(output["answers"][0]["other_text"] == "Руководители продуктовых команд", "single_choice other_text was not saved")
             assert_true(output["answers"][1]["other_text"] == "Партнерские рекомендации", "multiple_choice other_text was not saved")
@@ -355,12 +512,14 @@ def main() -> int:
             pass_line("save creates .gitignore, answers files, and backups")
 
             (out_dir / "questions.json").write_text("{}", encoding="utf-8")
+            (out_dir / "decision-state.json").write_text("{}", encoding="utf-8")
             (out_dir / "keep.txt").write_text("keep", encoding="utf-8")
             deleted = server.cleanup_questionnaire_dir(out_dir)
             assert_true((out_dir / ".gitignore").exists(), "cleanup removed .gitignore")
             assert_true(not (out_dir / "answers.json").exists(), "cleanup did not remove answers.json")
             assert_true(not (out_dir / "answers.md").exists(), "cleanup did not remove answers.md")
             assert_true(not (out_dir / "questions.json").exists(), "cleanup did not remove questions.json")
+            assert_true(not (out_dir / "decision-state.json").exists(), "cleanup did not remove decision-state.json")
             assert_true((out_dir / "keep.txt").exists(), "cleanup removed a non-generated file")
             assert_true(any("answers.json" in path for path in deleted), "cleanup did not report deleted answers")
             pass_line("explicit cleanup removes generated files and keeps .gitignore")

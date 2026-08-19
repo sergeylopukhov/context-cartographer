@@ -5,7 +5,7 @@ description: Create or rebuild agent-facing project documentation systems and ro
 
 # Context Cartographer
 
-Build a small documentation system that lets future agents load only the context they need.
+Build a small documentation system that lets future agents load only the context they need, while using repository evidence and explicit user decisions to keep that system trustworthy.
 
 ## Scope Boundary
 
@@ -18,11 +18,13 @@ Build a small documentation system that lets future agents load only the context
 
 - Resolve the project root and inventory real paths before reading project files. Do not guess paths from the current directory or another project.
 - Reuse files already read during the task. Reread only a changed file, truncated output, or a specific unread range.
+- Use available search, structured-input, long-context, and read-only delegation capabilities when they improve the task, but keep the workflow functional without any provider-specific tool.
+- Parallelize only independent repository fact-finding when delegation is available and authorized. Keep user decisions, ownership synthesis, and final verification with the primary agent.
 - Keep root agent instruction files short. Put durable topic detail in owner files under `docs/`.
 - Use `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or thin adapters for selected multi-agent targets.
 - Inspect read-only before proposing changes.
 - Preserve existing project-specific rules and edit surgically.
-- Never overwrite, move, merge, or delete existing instruction or docs files without approval.
+- Never overwrite, move, merge, or delete existing instruction or docs files unless the user authorized the exact action or explicitly delegated that cleanup decision.
 - Create only files supported by project evidence and current needs.
 - Mark unknown facts as `TODO: clarify`; never invent project facts.
 - Keep project-memory docs local-only by default and add them to the repository ignore file unless the user explicitly asks to track or publish them.
@@ -38,7 +40,7 @@ Before creating or replacing root agent instructions, resolve:
 - handling of existing docs: keep as-is, audit only, migrate after approval, or let the agent decide;
 - whether project-memory docs remain local-only or are tracked.
 
-Do not infer code-rules mode or documentation maintenance mode. When more than two decisions are missing, use the bundled questionnaire.
+Do not infer code-rules mode or documentation maintenance mode. Collect missing decisions through the least disruptive available interface: direct conversation for one dependent decision, a native structured-input tool when it fits, or the bundled questionnaire for a broad independent decision set. Use adaptive decision discovery when answers have dependencies, conflicts, or material ambiguity.
 
 Generated root instructions must keep routine maintenance independent from this skill:
 
@@ -58,28 +60,39 @@ Generated root instructions must keep routine maintenance independent from this 
 - Read `references/cleanup-rules.md` before splitting, merging, deleting, or renaming docs.
 - Read `references/question_schema.md` before creating questionnaire JSON.
 - Read `references/questionnaire_usage_examples.md` only when adapting the questionnaire flow.
+- Read `references/decision-discovery.md` when unresolved decisions depend on each other, questionnaire answers conflict, terminology changes ownership, or a complex session needs resumable state.
+- Read `references/evaluation-scenarios.md` only when forward-testing a substantial skill revision.
 
 ## Workflow
 
 1. Resolve the project root and inventory paths with `rg --files`.
-2. Classify the project profile, selected agent target, existing docs, ownership, code-rules mode, and maintenance mode.
-3. For existing docs, show a compact map of current files, topic owners, and planned create/update/delete actions before editing.
-4. Apply the smallest justified documentation-system change within the user's authorized scope.
-5. Verify links, stale filenames, owner coverage, local-only ignore rules, and the independent routine-maintenance instructions.
+2. Classify verified facts separately from user decisions; resolve factual questions from the project whenever possible.
+3. Resolve the project profile, selected agent target, existing docs, ownership, code-rules mode, and maintenance mode through an appropriate question interface. Use adaptive decision discovery only when the decision topology requires it.
+4. For existing docs, show a compact map of current files, topic owners, and planned create/update/delete actions before editing.
+5. Apply the smallest justified documentation-system change within the user's authorized scope.
+6. Verify links, stale filenames, owner coverage, local-only ignore rules, and the independent routine-maintenance instructions.
 
 For a new system, follow `references/setup-workflow.md`.
 
 For audit, cleanup, migration, restructuring, or unclear ownership, follow `references/existing-docs-workflow.md`.
 
-## Questionnaire
+## Decision Collection
 
-For broad setup work with more than two missing decisions:
+Choose the interaction method by task shape, not by a fixed question count:
+
+- Ask directly when one decision is blocking the next step.
+- Use an available native structured-input tool for a small independent set when it supports the required options, neutral choices, custom answers, and comments.
+- Use the bundled local questionnaire for a broad independent baseline, cross-client portability, or when the native interface cannot preserve the required answer detail.
+- Use `references/decision-discovery.md` after the baseline when answers reveal dependencies, conflicts, vague terminology, or expensive choices.
+
+For the bundled questionnaire:
 
 1. Create `.project-questionnaire/questions.json` from `references/question_schema.md`.
 2. Set `language` to the user or project language.
 3. Validate with `python3 <this-skill>/scripts/questionnaire_server.py --input .project-questionnaire/questions.json --validate-only`.
 4. Run the server on `127.0.0.1` with an automatic port.
 5. After the user saves and says they are done, read both answer files before continuing.
+6. Do not ask again for a complete answer already present in the saved files. Follow up only on unresolved dependencies or contradictions.
 
 Code-rules mode and documentation maintenance mode must be required choices without defaults or recommendation options.
 

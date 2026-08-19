@@ -1,115 +1,119 @@
-# Usage Examples
+# Bundled Questionnaire Usage
 
-Use these prompts when an agent should collect project decisions through a clickable local questionnaire.
+Use the bundled questionnaire only inside a `context-cartographer` setup, audit, migration, cleanup, or restructuring task. Generic product discovery or "ask me questions before implementation" requests do not belong to this skill unless the user is specifically designing the project's agent-facing documentation system.
 
-These examples should trigger the skill even without naming it:
+## Appropriate Requests
 
 ```text
-Ask me questions before implementation.
+Use $context-cartographer to set up this project's agent documentation. Collect the unresolved setup choices through a clickable form if the native question interface is not sufficient.
 ```
 
 ```text
-Collect requirements before you build.
+Приведи документацию проекта в порядок. Если для карты owner-файлов нужно несколько независимых решений, собери их через локальную анкету.
 ```
 
 ```text
-Сначала задай мне вопросы по проекту.
+Audit the existing project docs and ask me through a portable questionnaire whether they should remain local, be migrated, or be tracked.
+```
+
+Do not activate this workflow for:
+
+```text
+Ask me questions before building a landing page.
 ```
 
 ```text
-Собери требования перед реализацией.
+Interview me about a new product feature.
 ```
 
-Explicit skill-name examples:
+Those are general requirements-discovery requests unless they explicitly include documentation-system ownership or restructuring.
 
-```text
-Use interactive-project-questionnaire when you need to ask me project questions.
-```
+## Interface Selection
 
-```text
-Используй interactive-project-questionnaire, чтобы задать мне вопросы по проекту.
-```
+1. Resolve repository facts before asking questions.
+2. Ask one blocking decision directly.
+3. Use a host-native structured question interface for a small independent set when it supports the required answer detail.
+4. Use the bundled questionnaire for a broad independent baseline, richer comments/custom answers, or cross-client portability.
+5. After reading the saved answers, switch to `decision-discovery.md` only when dependencies, conflicts, or material ambiguity remain.
 
-```text
-Use $interactive-project-questionnaire to collect requirements for this landing page project.
-```
+## Local Questionnaire Flow
 
-```text
-Use the interactive questionnaire skill before implementing this feature.
-```
-
-```text
-Ask me project questions through a clickable local form, not through a numbered chat list.
-```
-
-```text
-Use $interactive-project-questionnaire and write the questionnaire in Russian.
-```
-
-```text
-Перед реализацией собери требования через кликабельную анкету. Я хочу выбирать готовые варианты, но иногда выбирать "Другое / свой вариант" и вписывать свой ответ.
-```
-
-## Typical Agent Flow
-
-1. The agent creates `.project-questionnaire/questions.json`.
-2. The agent validates it:
+1. Create `.project-questionnaire/questions.json`.
+2. Validate it:
 
    ```bash
-   python3 <skill-dir>/scripts/questionnaire_server.py --input .project-questionnaire/questions.json --validate-only
+   python3 <skill-dir>/scripts/questionnaire_server.py \
+     --input .project-questionnaire/questions.json \
+     --validate-only
    ```
 
-3. The agent starts the local server:
+3. Start the local server:
 
    ```bash
-   python3 <skill-dir>/scripts/questionnaire_server.py --input .project-questionnaire/questions.json --out-dir .project-questionnaire --port 0
+   python3 <skill-dir>/scripts/questionnaire_server.py \
+     --input .project-questionnaire/questions.json \
+     --out-dir .project-questionnaire \
+     --port 0
    ```
 
-4. The agent gives the user a URL like `http://127.0.0.1:8765/`.
-5. The user opens the URL, selects predefined answers, optionally chooses the localized "Other" option, optionally adds comments, saves the form, and tells the agent they are done.
-6. The agent reads `.project-questionnaire/answers.md` and `.project-questionnaire/answers.json`.
-7. The agent summarizes the decisions and continues the task.
+4. Give the user the printed `http://127.0.0.1:<port>/` URL.
+5. After the user saves and says they are done, read both `.project-questionnaire/answers.json` and `.project-questionnaire/answers.md`.
+6. Reuse complete answers. Do not repeat the entire questionnaire in chat.
 
-## Russian Questionnaire Example
+## Documentation Setup Example
 
-Set top-level `language` to `ru`:
+The two mode decisions are required and deliberately have no defaults or recommendations:
 
 ```json
 {
-  "title": "Бриф проекта",
-  "description": "Выберите практическое направление, чтобы агент продолжил работу без длинного списка вопросов в чате.",
-  "language": "ru",
+  "title": "Project documentation setup",
+  "description": "Choose how agents should route and maintain durable project knowledge.",
+  "language": "en",
   "questions": [
     {
-      "id": "goal",
-      "title": "Какой результат важнее всего?",
-      "type": "single_choice",
+      "id": "agent_target",
+      "title": "Which coding agents should receive project instructions?",
+      "type": "multiple_choice",
       "required": true,
       "allow_other": true,
-      "allow_recommend": true,
       "options": [
-        {
-          "value": "mvp",
-          "label": "Быстрый MVP"
-        },
-        {
-          "value": "polished_v1",
-          "label": "Аккуратная первая версия"
-        }
+        {"value": "codex", "label": "Codex"},
+        {"value": "claude", "label": "Claude Code"},
+        {"value": "cursor", "label": "Cursor"}
+      ]
+    },
+    {
+      "id": "code_rules_mode",
+      "title": "Should the project use docs/code_rules.md?",
+      "type": "single_choice",
+      "required": true,
+      "options": [
+        {"value": "use", "label": "Use a dedicated code-rules file"},
+        {"value": "skip", "label": "Do not use a dedicated code-rules file"}
+      ]
+    },
+    {
+      "id": "maintenance_mode",
+      "title": "How should durable project documentation be maintained?",
+      "type": "single_choice",
+      "required": true,
+      "options": [
+        {"value": "automatic", "label": "Automatic durable maintenance"},
+        {"value": "request_only", "label": "Update only when requested"}
       ]
     }
   ]
 }
 ```
 
-## Optional Cleanup
+## Explicit Cleanup
 
-Do not clean up automatically after saving the form. The agent still needs to read the answer files.
-
-After the task is finished, cleanup can be requested explicitly or run manually:
+Do not clean generated files before the agent has read the saved answers and any decision state. Cleanup remains explicit:
 
 ```bash
-python3 <skill-dir>/scripts/questionnaire_server.py --out-dir .project-questionnaire --cleanup
+python3 <skill-dir>/scripts/questionnaire_server.py \
+  --out-dir .project-questionnaire \
+  --cleanup
 ```
 
-Cleanup deletes generated questionnaire files such as `questions.json`, `answers.json`, `answers.md`, and backups from `.project-questionnaire/`, while keeping `.project-questionnaire/.gitignore`.
+Cleanup removes generated questionnaire files, answer backups, and `decision-state.json`, while preserving `.project-questionnaire/.gitignore` and unrelated files.

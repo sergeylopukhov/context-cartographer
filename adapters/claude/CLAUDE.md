@@ -8,7 +8,7 @@ Use this adapter only as a small persistent pointer. Keep the full workflow in t
 - Treat short broad prompts such as "доделай документацию" or "bring docs into shape" as a request to run the full context-cartographer workflow; do not require a long prompt.
 - Do not infer documentation maintenance mode; automatic durable maintenance requires explicit user selection.
 - Do not infer code-rules mode; using `docs/code_rules.md` for code and code-adjacent edits requires explicit user selection.
-- Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
+- For questions, analysis, review, diagnosis, or planning, inspect and report without changing files. For explicit change requests, complete authorized in-scope local work and checks without asking again; ask only for a missing consequential decision or before destructive, external, costly, or scope-expanding action.
 - Before changing existing docs, scan read-only and show the proposed docs map: current docs, topic owners, and planned create/update/delete actions.
 - Before code or code-adjacent edits, read `docs/code_rules.md` only when root instructions enable code-rules mode.
 - When root instructions define automatic durable documentation maintenance, update the relevant owner docs in the same task after durable behavior, architecture, setup, deployment, staging, test-data, SSH, access, import/export, public URL, WordPress setup, operator-workflow, data-model, public-interface, agent-workflow, or documentation-ownership changes. If automatic mode applies and no docs update is needed, say so in the final response.

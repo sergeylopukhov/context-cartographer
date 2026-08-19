@@ -62,24 +62,26 @@ Classify each durable Markdown file:
 - Are unknown facts marked as `TODO: clarify` rather than invented?
 - Are language rules consistent with the project?
 
-## Questions To Ask Before Editing
+## Decision And Authorization Gates
 
-Ask before acting when:
+Do not ask merely because several interpretations are imaginable. First inspect the repository and eliminate choices that evidence already resolves. Ask only when the answer changes the resulting documentation system or authorization boundary.
+
+User input is required when:
 
 - existing docs, README files, or project instruction files are present and the prompt did not explicitly delegate cleanup decisions; first ask whether to keep as-is, audit only, migrate after approval, or let the agent decide;
 - root agent instructions are being created or replaced and the user has not selected whether to use `docs/code_rules.md` for code and code-adjacent edits;
-- the goal is unclear;
-- there are multiple plausible owner files;
-- no suitable owner file exists;
+- root agent instructions are being created or replaced and the user has not selected documentation maintenance mode;
+- the goal remains materially unclear after repository discovery;
+- several plausible owner maps remain and choosing one would change future routing;
 - an existing root agent instruction file needs heavy rewriting;
 - a file might be deleted, merged, or renamed;
-- existing docs are present and the user has not chosen what to do with them;
 - documentation language policy is unclear;
 - project-memory docs are not ignored and `docs/` might be public/user-facing;
-- the project profile is ambiguous or mixed;
-- a suggested docs file does not match the detected project profile;
+- the project profile remains ambiguous after inspecting code and configuration and the ambiguity changes the owner set;
 - root agent instruction files, `README*`, `docs/architecture.md`, and profile docs conflict; mark `TODO: clarify` or ask instead of choosing a source of truth silently;
 - secrets, credentials, production access, or private data might be involved.
+
+Do not ask for permission to create a justified missing owner under `automatic durable maintenance`; follow the missing-owner protocol. Do not ask the user for a fact that repository files, tools, or available runtime evidence can establish.
 
 ## Safe Verification
 
