@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 
 
 HOST = "127.0.0.1"
-VERSION = "1.2.0"
+VERSION = "2.0.0"
 SUPPORTED_TYPES = {"single_choice", "multiple_choice", "text", "textarea", "scale"}
 CHOICE_TYPES = {"single_choice", "multiple_choice"}
 NOT_SURE_VALUE = "__not_sure__"
@@ -442,6 +442,7 @@ def validate_questionnaire(raw: Any, source: str = "<memory>") -> dict[str, Any]
         raise QuestionnaireError("Question ids must be unique.")
 
     known_ids = set(ids)
+    dependency_graph: dict[str, str] = {}
     for question in normalized_questions:
         show_if = question.get("show_if")
         if not show_if:
@@ -451,6 +452,19 @@ def validate_questionnaire(raw: Any, source: str = "<memory>") -> dict[str, Any]
             raise QuestionnaireError(f"Question '{question['id']}' show_if references unknown question '{dependency}'.")
         if dependency == question["id"]:
             raise QuestionnaireError(f"Question '{question['id']}' cannot depend on itself.")
+        dependency_graph[question["id"]] = dependency
+
+    for start in dependency_graph:
+        trail: list[str] = []
+        seen_at: dict[str, int] = {}
+        current = start
+        while current in dependency_graph:
+            if current in seen_at:
+                cycle = trail[seen_at[current]:] + [current]
+                raise QuestionnaireError(f"Question show_if dependency cycle: {' -> '.join(cycle)}.")
+            seen_at[current] = len(trail)
+            trail.append(current)
+            current = dependency_graph[current]
 
     normalized["questions"] = normalized_questions
     return normalized
@@ -697,7 +711,7 @@ def build_answer_documents(
         "saved_at": saved_at,
         "answers": answer_items,
         "metadata": {
-            "generated_by": "interactive-project-questionnaire",
+            "generated_by": "context-cartographer-questionnaire",
             "version": VERSION,
         },
     }
@@ -779,7 +793,13 @@ def ensure_work_dir(out_dir: Path) -> None:
 
 def cleanup_questionnaire_dir(out_dir: Path) -> list[str]:
     ensure_work_dir(out_dir)
-    generated_names = {"questions.json", "questions.demo.json", "answers.json", "answers.md"}
+    generated_names = {
+        "questions.json",
+        "questions.demo.json",
+        "answers.json",
+        "answers.md",
+        "decision-state.json",
+    }
     deleted: list[str] = []
 
     for child in sorted(out_dir.iterdir()):

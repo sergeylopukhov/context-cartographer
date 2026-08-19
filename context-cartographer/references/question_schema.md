@@ -1,4 +1,6 @@
-# Questionnaire JSON Schema
+# Bundled Questionnaire JSON Schema
+
+Use the bundled local questionnaire when a broad independent decision set needs richer answers or the host agent has no suitable native structured-input interface. Do not use it for a single blocking question or as a substitute for adaptive follow-up when decisions depend on earlier answers.
 
 Save questionnaire definitions as a UTF-8 JSON object, usually:
 
@@ -81,6 +83,8 @@ If an unknown `ui` key is supplied, validation fails.
 - `default` string, number, or array, optional: Initial value.
 - `show_if` object, optional: Simple dependency that controls whether the question is visible.
 - `metadata` object, optional: Non-user-facing data for the agent.
+
+Do not set `recommended` for the required code-rules mode or documentation maintenance mode questions. Those choices must remain neutral.
 
 ## Option Fields
 
@@ -205,6 +209,8 @@ Supported operators:
 ```
 
 Only one operator should be used per `show_if` object.
+
+Conditional dependencies may point forward or backward in the question list, but they must not form a cycle. Validation rejects self-dependencies, unknown question IDs, and dependency cycles that could leave every related question hidden.
 
 ## Full Valid Example
 

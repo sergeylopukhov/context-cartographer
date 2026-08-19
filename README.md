@@ -16,43 +16,51 @@
 
 ## English
 
-Context Cartographer is an agent skill that creates compact project documentation for AI agents, not long manuals for people.
+Context Cartographer sets up project documentation for coding agents. During a run, the agent inspects the repository, assigns each durable topic to one owner file, and writes a short root instruction file that points later tasks to the right context.
 
-It gives an AI a reliable map of the repository: where the important code lives, which docs own which facts, what to read before editing, and how to keep durable project knowledge current. The result is less repeated scanning, fewer wasted tokens, and faster handoff between AI sessions or different AI tools.
+Version 0.2.0 separates repository facts from user decisions. Code, configuration, and existing docs answer factual questions. The user is asked only about choices that the repository cannot settle.
 
-### Why Use It
+### What it handles
 
-- Your AI does not need to rediscover the same project structure every task.
-- Generated root instructions make agents resolve repository paths first and avoid rereading the same full file within one task.
-- Routine documentation maintenance runs directly from generated root instructions; the full skill is reserved for setup, audit, migration, cleanup, and restructuring.
-- If no existing owner document fits, agents return to the skill before creating a new Markdown owner.
-- Project facts live in small owner docs instead of scattered chat history.
-- Any AI that can read Markdown can use the generated docs.
-- Existing docs are inspected before changes; the skill asks before rewriting, moving, or deleting them.
-- Agent-facing docs stay local-only by default unless you explicitly decide to track or publish them.
+- Creates a documentation system for a new or undocumented project.
+- Audits and restructures an existing set of docs.
+- Finds duplicate ownership, contradictions, stale links, and topics without an owner.
+- Chooses the question interface to fit the task: direct conversation, the host agent's structured input, or the bundled local questionnaire.
+- Resolves dependent decisions in order and can save long-running interview state in `decision-state.json`.
+- Rejects dependency cycles and incomplete decision sets before documentation changes begin.
+- Produces Markdown instructions for Codex, Claude Code, Cursor, and other coding agents.
 
-### What It Creates
+Routine edits to a known owner file do not load the full skill. Root instructions route the agent directly to that file. Context Cartographer is used for initial setup, audits, migrations, cleanup, restructuring, and cases where ownership is unclear.
 
-The skill creates only the documentation the project needs:
+### Files it may create
+
+The exact set depends on the repository:
 
 - Root agent instruction file — `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, or `.cursor/rules/context-cartographer.mdc` for Cursor.
 - `docs/architecture.md` — the documentation map.
 - `docs/architecture-overview.md` — stack, layout, and entry points.
 - `docs/architecture-quality-risks.md` — tests, checks, risks, and fragile areas.
-- `docs/code_rules.md` — optional rules for code edits, created only if you choose it.
-- Profile docs such as `PRODUCT.md`, `DESIGN.md`, `DEPLOYMENT.md`, `API.md`, `SECURITY.md`, or `CONTENT-SEO.md` only when the project actually needs them.
+- `docs/code_rules.md` — optional rules for code changes.
+- Profile docs such as `PRODUCT.md`, `DESIGN.md`, `DEPLOYMENT.md`, `API.md`, `SECURITY.md`, `INTEGRATIONS.md`, `ADMIN.md`, or `CONTENT-SEO.md` when repository evidence supports them.
 
-### How It Works
+The local `.project-questionnaire/` directory holds questionnaire answers and temporary decision state. It is ignored by Git by default and never acts as the source of truth for project facts.
 
-1. The agent scans the repository in read-only mode.
-2. If decisions are needed, it asks through a local clickable questionnaire.
-3. It proposes a documentation map before editing existing docs.
-4. It creates or updates the selected docs.
-5. Future AI agents use those docs instead of spending context on repeated discovery.
+### Workflow
 
-### Updates
+1. Inspect the nearest project instructions, code, configuration, and docs without changing them.
+2. Separate verified facts from decisions that belong to the user.
+3. Collect independent choices through the most suitable interface. Ask dependent questions only after their prerequisites are resolved.
+4. Validate saved decision state, references between decisions, and open conflicts when the task needs an extended interview.
+5. Before editing existing docs, show the proposed ownership map and list every file to keep, change, create, or remove.
+6. Apply the approved scope, then check owners, links, old filenames, Git ignore rules, and routing for future tasks.
 
-When the skill runs, it can check GitHub for a newer version at most once per day. If an update is available, the agent asks before installing it. It never updates itself silently. Use a forced check after publishing if you need an immediate refresh.
+The generated system does not add a parallel `CONTEXT.md` or another competing source of truth. Each durable topic has one owner document.
+
+### Requirements
+
+- Python 3.
+- Git when working inside a repository.
+- No third-party Python packages for the questionnaire or decision-state validator.
 
 ### Install
 
@@ -85,9 +93,13 @@ cp adapters/claude/CLAUDE.md ./CLAUDE.md
 ```bash
 mkdir -p .cursor/skills
 rsync -a context-cartographer/ .cursor/skills/context-cartographer/
-mkdir -p .cursor/rules
-cp adapters/cursor/context-cartographer.mdc .cursor/rules/context-cartographer.mdc
 ```
+
+When you run the skill, it can create or update the project-specific `.cursor/rules/context-cartographer.mdc` router from its bundled templates.
+
+### Updates
+
+The skill checks GitHub for a newer version at most once per day. Installing an update always requires confirmation. The installed version is recorded in `context-cartographer/VERSION`.
 
 ### Use
 
@@ -107,43 +119,52 @@ Use context-cartographer. Analyze existing documentation as project context, dec
 
 ## Русский
 
-Context Cartographer — скилл, который создаёт короткую проектную документацию для ИИ-агентов, а не большую инструкцию для человека.
+Context Cartographer настраивает проектную документацию для ИИ-агентов. Во время запуска агент изучает репозиторий, назначает каждой постоянной теме один файл-владелец и создаёт в корне короткую инструкцию со ссылками на нужный контекст.
 
-Он даёт ИИ понятную карту репозитория: где лежит важный код, какие файлы отвечают за разные знания о проекте, что читать перед правками и как поддерживать устойчивые проектные правила. В результате ИИ не тратит большой контекст и токены на повторный поиск структуры, файлов и функций.
+В версии 0.2.0 агент различает факты репозитория и решения пользователя. Фактические вопросы проверяются по коду, конфигурации и существующим документам. Пользователю остаются решения, для которых в проекте нет ответа.
 
-### Зачем Это Нужно
+### Что умеет скилл
 
-- ИИ не изучает проект заново перед каждой задачей.
-- Корневые инструкции требуют сначала определить реальные пути в репозитории и не перечитывать один и тот же файл целиком в рамках одной задачи.
-- Обычное автоматическое ведение документации работает напрямую через корневые инструкции; полный скилл запускается только для создания, аудита, миграции, очистки и перестройки docs.
-- Если подходящего owner-файла нет, агент возвращается к скиллу до создания нового Markdown-документа.
-- Важные факты лежат в небольших Markdown-файлах, а не теряются в истории чатов.
-- Документацию может читать любой ИИ, который умеет работать с Markdown.
-- Существующие docs сначала проверяются; скилл спрашивает перед перезаписью, переносом или удалением.
-- Документация для ИИ по умолчанию остаётся локальной, если вы явно не решили хранить её в репозитории.
+- создаёт документационную систему для нового проекта или проекта без документации;
+- проверяет и перестраивает существующие документы;
+- находит дубли, противоречия, устаревшие ссылки и темы без владельца;
+- выбирает способ опроса по задаче: один вопрос в чате, встроенная форма агента или локальная анкета;
+- разбирает зависимые решения по порядку и сохраняет состояние длинной сессии в `decision-state.json`;
+- отклоняет циклы зависимостей и неполные наборы решений до начала правок;
+- поддерживает Codex, Claude Code, Cursor и других агентов, которые читают Markdown.
 
-### Что Создаётся
+Для обычного обновления известного документа полный запуск не нужен. Корневая инструкция направляет агента сразу в нужный файл. Context Cartographer используется при первой настройке, аудите, миграции, очистке, перестройке и в случаях, когда владелец темы неясен.
 
-Скилл создаёт только те файлы, которые нужны проекту:
+### Какие файлы создаются
 
-- Корневой файл инструкций для ИИ: `AGENTS.md` для Codex, `CLAUDE.md` для Claude Code или `.cursor/rules/context-cartographer.mdc` для Cursor.
-- `docs/architecture.md` — карта документации.
-- `docs/architecture-overview.md` — стек, структура и важные точки входа.
-- `docs/architecture-quality-risks.md` — тесты, проверки, риски и хрупкие места.
-- `docs/code_rules.md` — необязательные правила для правок кода, только если вы выбрали такой режим.
-- Профильные docs вроде `PRODUCT.md`, `DESIGN.md`, `DEPLOYMENT.md`, `API.md`, `SECURITY.md` или `CONTENT-SEO.md` — только когда они действительно нужны проекту.
+Точный набор зависит от репозитория:
 
-### Как Это Работает
+- `AGENTS.md` для Codex, `CLAUDE.md` для Claude Code или `.cursor/rules/context-cartographer.mdc` для Cursor;
+- `docs/architecture.md` с картой владельцев;
+- `docs/architecture-overview.md` со стеком, структурой и точками входа;
+- `docs/architecture-quality-risks.md` с проверками, рисками и техническим долгом;
+- `docs/code_rules.md` с необязательными правилами для правок кода.
 
-1. Агент сначала читает проект без изменений.
-2. Если нужны решения, он задаёт вопросы через локальную кликабельную анкету.
-3. Перед правками показывает карту будущей документации.
-4. Создаёт или обновляет только согласованные файлы.
-5. Следующие ИИ-агенты читают эту карту и не тратят контекст на повторную разведку проекта.
+Профильные документы `PRODUCT.md`, `DESIGN.md`, `DEPLOYMENT.md`, `API.md`, `SECURITY.md`, `INTEGRATIONS.md`, `ADMIN.md` и `CONTENT-SEO.md` создаются, если их необходимость подтверждают файлы проекта.
 
-### Обновления
+Локальная папка `.project-questionnaire/` хранит анкету, ответы и временное состояние решений. По умолчанию она исключена из Git и не считается источником проектных фактов.
 
-При запуске скилл может проверить GitHub на новую версию, но не чаще одного раза в день. Если обновление есть, агент спросит перед установкой. Самостоятельно и незаметно он не обновляется. После публикации можно запустить принудительную проверку, если нужно увидеть обновление сразу.
+### Как проходит работа
+
+1. Агент определяет корень проекта и без правок изучает ближайшие инструкции, код, конфигурацию и документы.
+2. Проверенные факты отделяются от решений, которые должен принять пользователь.
+3. Для независимых решений выбирается подходящий способ опроса. Зависимые вопросы задаются после решения их предпосылок.
+4. При длинном интервью валидатор проверяет состояние сессии, связи между решениями и открытые противоречия.
+5. Перед изменением существующих документов агент показывает будущую карту: что останется, что изменится, что появится и что будет удалено.
+6. После правок агент проверяет владельцев, ссылки, старые имена файлов, правила исключения из Git и маршрутизацию следующих задач.
+
+Параллельные `CONTEXT.md` и другие конкурирующие источники истины не создаются. У каждой постоянной темы есть один документ-владелец.
+
+### Требования
+
+- Python 3;
+- Git при работе внутри репозитория;
+- анкета и валидатор состояния работают без сторонних библиотек Python.
 
 ### Установка
 
@@ -176,9 +197,13 @@ cp adapters/claude/CLAUDE.md ./CLAUDE.md
 ```bash
 mkdir -p .cursor/skills
 rsync -a context-cartographer/ .cursor/skills/context-cartographer/
-mkdir -p .cursor/rules
-cp adapters/cursor/context-cartographer.mdc .cursor/rules/context-cartographer.mdc
 ```
+
+При запуске скилл может создать или обновить проектный роутер `.cursor/rules/context-cartographer.mdc` по встроенному шаблону.
+
+### Обновления
+
+Скилл проверяет наличие новой версии не чаще одного раза в день. Установка обновления всегда требует подтверждения. Текущая версия указана в `context-cartographer/VERSION`.
 
 ### Использование
 

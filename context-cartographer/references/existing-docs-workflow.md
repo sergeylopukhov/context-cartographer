@@ -16,6 +16,8 @@ Before changing existing documentation, resolve:
 
 Generic permission to decide cleanup does not authorize choosing code-rules mode or documentation maintenance mode.
 
+Resolve a single blocking decision directly. For several independent decisions, use an available native structured-input tool or the bundled questionnaire. Read `decision-discovery.md` when choices depend on one another, evidence conflicts, terminology is ambiguous, or the session needs resumable state.
+
 For a targeted missing-owner case, keep unrelated existing docs as-is. Do not require a general cleanup strategy or ask for approval to create the owner file and its routing-map entry.
 
 ## Required References
@@ -26,10 +28,11 @@ Read:
 - `doc-map.md` to classify the project and assign topic ownership;
 - `file-templates.md` before creating a root instruction file or owner document;
 - `cleanup-rules.md` before splitting, merging, deleting, or renaming docs.
+- `decision-discovery.md` when the audit exposes dependent decisions, material contradictions, or unresolved terminology.
 
 ## Audit And Proposal
 
-1. Resolve the project root and inventory real paths with `rg --files`.
+1. Resolve the project root and inventory real paths with `rg --files` or an equivalent repository inventory. If safe delegation is available, parallelize only clearly independent read-only inventories and keep final ownership decisions in the primary agent.
 2. Inventory root instructions, README files, docs indexes, architecture, product, design, deployment, security, API, integration, admin, content, advertising, glossary, temporary, and obsolete files.
 3. Identify duplicate facts, conflicts, missing owners, stale links, oversized mixed documents, and profile-inappropriate files.
 4. Show a compact proposed documentation map before edits:

@@ -28,11 +28,9 @@ Use the same body shape for each target, adjusted only for the agent name and fi
 
 - Agent target: TODO: replace with `Codex`, `Claude Code`, `Cursor`, or `multi-agent adapter`.
 - Reply in the project/user's default language unless asked otherwise.
-- Treat questions, analysis, brainstorming, and project discussion as conversation-only by default. Do not edit files, run mutating commands, or make code changes unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
-- If the user's intent is ambiguous, ask whether they want discussion only or actual file changes before editing.
-- If the goal is unclear and cannot be safely inferred, ask before acting.
+- For requests to answer, explain, review, diagnose, or plan, inspect relevant project evidence and report without changing files. For requests to change, build, fix, create, update, or apply, complete the authorized in-scope local work and relevant non-destructive verification without asking again. Ask only when a missing user decision changes the outcome, or before destructive, external, costly, or materially scope-expanding action.
 - At the start of a task, resolve the project root once and locate files from the repository inventory (`rg --files` or an equivalent file list). Treat documentation paths as project-root-relative; do not guess paths from the current directory or reuse paths from another project.
-- Keep track of project files already read during the current task and reuse their contents. Do not read the same full file again unless it changed, the earlier output was truncated, or a specific unread section is required; in those cases, read only the needed range.
+- Start with the nearest instructions and relevant source files, then broaden only when evidence requires it. Reuse files already read during the task. Do not read the same full file again unless it changed, the earlier output was truncated, or a specific unread section is required.
 - Treat project-memory docs as local-only: do not commit, push, upload, publish, or deploy them unless explicitly requested.
 - Code-rules mode: TODO: replace with `use code rules file` or `do not use code rules file` before writing this file.
 - If code-rules mode is `use code rules file`, read `docs/code_rules.md` before changing code or code-adjacent project files such as tests, migrations, scripts, build config, deployment config, or application behavior.
@@ -45,7 +43,6 @@ Use the same body shape for each target, adjusted only for the agent name and fi
 - Invoke `context-cartographer` only for first-time setup, documentation audit, migration, cleanup, restructuring, explicit user requests, or genuinely unclear ownership.
 - If no existing owner file fits or a new Markdown owner is being considered, invoke `context-cartographer` and follow its missing-owner workflow. Under automatic durable maintenance, create the smallest justified owner and update `docs/architecture.md` without asking merely for permission to create a Markdown file.
 - For product, design, deployment, security, API, integration, content, admin, or advertising questions, read the matching `docs/*.md` owner file first.
-- If documentation ownership is unclear or no suitable file exists under automatic durable maintenance, classify the topic, create the smallest justified owner automatically, and update the documentation map.
 ```
 
 ## docs/architecture.md
@@ -166,14 +163,14 @@ Read this file before changing code or code-adjacent project files such as tests
 
 These rules bias toward small, verified, reversible changes. For trivial tasks, use judgment, but do not skip explicit user intent, context checks, or verification.
 
-## 1. Confirm Intent And Scope
+## 1. Respect Intent And Scope
 
 Discussion is not permission to edit.
 
-- Treat questions, analysis, brainstorming, and project discussion as conversation-only unless the user explicitly asks to implement, change, create, update, delete, move, fix, run, or apply something.
-- If the goal, target behavior, or permission to edit is unclear, ask before changing files or running mutating commands.
+- For questions, analysis, review, diagnosis, or planning, inspect and report without changing files.
+- For explicit change, build, fix, create, update, or apply requests, complete the authorized in-scope local work and relevant non-destructive checks without asking again.
+- Ask only when a missing user decision changes the result, or before destructive, external, costly, or materially scope-expanding action.
 - State meaningful assumptions when they affect implementation.
-- If multiple valid interpretations exist, present the options instead of choosing silently.
 
 ## 2. Curate Context First
 
@@ -225,7 +222,8 @@ Treat agent-written code like code from a new contributor: useful, but not trust
 ## 6. Security And Operations Guardrails
 
 - Never write secrets, tokens, private keys, production credentials, or private user data into code, docs, logs, tests, or chat.
-- Ask before adding dependencies, changing lockfiles, running migrations, changing deployment config, deleting data, or touching production-like systems.
+- Add dependencies, change lockfiles, migrations, or deployment configuration only when the requested outcome requires them; ask when the choice materially expands scope or operational risk.
+- Require explicit authorization before deleting data or changing a production-like system.
 - Preserve permission boundaries and existing access-control checks unless the user explicitly asks to change them.
 - Prefer reversible changes and document rollback or recovery steps for risky operations.
 
