@@ -285,6 +285,7 @@ The offline HTML graph embeds the index and report as a single JSON object, so i
 - Do not fetch remote images or scripts. Omit or neutralize remote image links.
 - The embedded text is a derived copy, so the freshness fingerprint must include document text, not headings alone.
 - Nodes keep a stable position for identical input; a text edit must not reshuffle the whole graph.
+- A reader's manually moved nodes are stored only in that browser under the graph snapshot's fingerprint. The saved positions are ignored when a new snapshot has a different fingerprint and can be reset from the interface.
 
 ## Index API
 

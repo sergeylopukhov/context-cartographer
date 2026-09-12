@@ -328,6 +328,7 @@ class TemplateContractTests(unittest.TestCase):
             'id="zoom-out"',
             'id="zoom-fit"',
             'id="zoom-reset"',
+            'id="layout-reset"',
             'id="rel-routes_to"',
             'id="rel-owns_topic"',
             'id="rel-references"',
@@ -346,6 +347,10 @@ class TemplateContractTests(unittest.TestCase):
             "function fitView",
             "function zoomBy",
             "function centerOn",
+            "function beginNodeDrag",
+            "function restoreSavedLayout",
+            "function saveLayout",
+            "function resetLayout",
             "function applyGraphFilters",
             "function buildTree",
             "function treeKeydown",
@@ -367,6 +372,7 @@ class TemplateContractTests(unittest.TestCase):
             "pointerdown",
             "pointermove",
             "wheel",
+            "localStorage",
         ):
             with self.subTest(behaviour=behaviour):
                 self.assertIn(behaviour, self.template)

@@ -9,41 +9,41 @@
 <title>Documentation graph</title>
 <style>
 :root {
-  --bg: #f4f6f8;
-  --panel: #ffffff;
-  --ink: #1b2027;
-  --muted: #5c6675;
-  --line: #d7dce4;
-  --line-strong: #b9c1cd;
-  --accent: #2f5fbf;
-  --accent-soft: #e6edfa;
-  --route: #2f5fbf;
-  --own: #4d7a45;
-  --ref: #7c6a2f;
-  --dep: #8d3f6a;
+  --bg: #f4f3f8;
+  --panel: rgba(255, 255, 255, 0.88);
+  --ink: #2a2733;
+  --muted: #6f697c;
+  --line: #ddd9e6;
+  --line-strong: #bdb7ca;
+  --accent: #7058b8;
+  --accent-soft: #ede9fa;
+  --route: #7058b8;
+  --own: #4f8061;
+  --ref: #8a6a31;
+  --dep: #a24d78;
   --error: #b3261e;
   --warn: #8a5300;
   --info: #1c5f74;
   --error-bg: #fbe9e7;
   --warn-bg: #fdf2dc;
   --info-bg: #e6f1f5;
-  --shadow: 0 1px 2px rgba(16, 24, 40, 0.07);
+  --shadow: 0 10px 28px rgba(43, 34, 65, 0.08);
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111419;
-    --panel: #171b21;
-    --ink: #e7eaf0;
-    --muted: #9aa4b3;
-    --line: #2b323c;
-    --line-strong: #3b424e;
-    --accent: #86aaf2;
-    --accent-soft: #1e2733;
-    --route: #86aaf2;
-    --own: #94c689;
-    --ref: #d6bd76;
-    --dep: #dc93bb;
+    --bg: #1e1b24;
+    --panel: rgba(38, 34, 46, 0.88);
+    --ink: #e9e5f0;
+    --muted: #aba3b8;
+    --line: #39333f;
+    --line-strong: #564d60;
+    --accent: #ad92ef;
+    --accent-soft: #322b42;
+    --route: #ad92ef;
+    --own: #91c59f;
+    --ref: #dbbb78;
+    --dep: #e59abf;
     --error: #f0a9a3;
     --warn: #e0b465;
     --info: #8cc4d6;
@@ -74,6 +74,7 @@ button { cursor: pointer; }
   align-items: center;
   padding: 8px 12px;
   background: var(--panel);
+  backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
 }
 .topbar .title { font-weight: 600; margin-right: 4px; }
@@ -112,7 +113,14 @@ main {
 .outliner { border-right: 1px solid var(--line); }
 .details { border-left: 1px solid var(--line); }
 .center { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
-.canvas { position: relative; min-height: 0; background: var(--bg); border-bottom: 1px solid var(--line); }
+.canvas {
+  position: relative;
+  min-height: 0;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--line) 0.8px, transparent 0.8px);
+  background-size: 18px 18px;
+  border-bottom: 1px solid var(--line);
+}
 svg#graph { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
 svg#graph.dragging { cursor: grabbing; }
 
@@ -273,8 +281,9 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 .statusbar strong { color: var(--ink); }
 
 .node rect, .node .label, .node .sub { pointer-events: none; }
-.node { cursor: pointer; }
-.node rect.body { fill: var(--panel); stroke: var(--line-strong); stroke-width: 1; }
+.node { cursor: grab; }
+.node.dragging { cursor: grabbing; }
+.node rect.body { fill: var(--panel); stroke: var(--line-strong); stroke-width: 1; filter: drop-shadow(0 5px 9px rgba(24, 18, 35, 0.16)); }
 .node.topic rect.body { fill: var(--accent-soft); }
 .node .label { font-size: 12px; fill: var(--ink); font-weight: 600; }
 .node .sub { font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
@@ -283,7 +292,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 .node .badge text { fill: #fff; font-size: 10px; font-weight: 700; }
 .node.dim { opacity: 0.25; }
 .node.hidden { display: none; }
-.node.selected rect.body { stroke: var(--accent); stroke-width: 2; }
+.node.selected rect.body { stroke: var(--accent); stroke-width: 2.4; }
 .node.related rect.body { stroke: var(--accent); }
 .node:focus-visible rect.body { stroke: var(--accent); stroke-width: 2; }
 .edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
@@ -328,6 +337,9 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     <label><input type="checkbox" id="problems-only"> problems only</label>
   </span>
   <span class="zoom" role="group" aria-label="Zoom and pan">
+    <button type="button" class="icon-btn" id="layout-reset" title="Restore automatic layout" aria-label="Restore automatic layout">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v6h6"></path><path d="M21 21v-6h-6"></path><path d="M3 9a9 9 0 0 1 15-4.5L21 7"></path><path d="M21 15A9 9 0 0 1 6 19.5L3 17"></path></svg>
+    </button>
     <button type="button" class="icon-btn" id="zoom-out" title="Zoom out" aria-label="Zoom out">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
     </button>
@@ -584,7 +596,9 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     area: '',
     types: { routes_to: true, owns_topic: true, references: true, depends_on: true },
     problemsOnly: false,
-    view: { scale: 1, x: 0, y: 0 }
+    view: { scale: 1, x: 0, y: 0 },
+    layoutKey: '',
+    suppressNodeClick: false
   };
 
   var viewport = null;
@@ -593,6 +607,8 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
   var nodeElements = {};
   var edgeElements = [];
   var treeItems = {};
+  var panDrag = null;
+  var nodeDrag = null;
 
   function loadPayload() {
     var holder = byId('documentation-graph-data');
@@ -892,6 +908,59 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     return positions;
   }
 
+  function layoutStorageKey(model) {
+    var fingerprint = asText(model.index.source_fingerprint) || asText(model.report.source_fingerprint) || 'snapshot';
+    return 'context-cartographer:graph-layout:' + fingerprint;
+  }
+
+  function restoreSavedLayout() {
+    if (!state.layoutKey) {
+      return;
+    }
+    try {
+      var saved = JSON.parse(window.localStorage.getItem(state.layoutKey) || 'null');
+      var positions = saved && saved.positions;
+      if (!positions || typeof positions !== 'object') {
+        return;
+      }
+      Object.keys(state.positions).forEach(function (id) {
+        var point = positions[id];
+        if (point && Number.isFinite(point.x) && Number.isFinite(point.y)) {
+          state.positions[id].x = point.x;
+          state.positions[id].y = point.y;
+        }
+      });
+    } catch (err) {
+      // Browser storage is an optional convenience. A corrupt or unavailable
+      // entry must never prevent the offline graph from opening.
+    }
+  }
+
+  function saveLayout() {
+    if (!state.layoutKey) {
+      return;
+    }
+    var positions = {};
+    Object.keys(state.positions).forEach(function (id) {
+      var point = state.positions[id];
+      positions[id] = { x: Math.round(point.x), y: Math.round(point.y) };
+    });
+    try {
+      window.localStorage.setItem(state.layoutKey, JSON.stringify({ version: 1, positions: positions }));
+    } catch (err) {
+      // Private browsing and file:// policies may disallow storage.
+    }
+  }
+
+  function resetLayout() {
+    state.positions = computeLayout(state.model);
+    if (state.layoutKey) {
+      try { window.localStorage.removeItem(state.layoutKey); } catch (err) { /* optional storage */ }
+    }
+    renderGraph();
+    fitView();
+  }
+
   function edgePath(a, b) {
     var ax = a.x + a.w / 2;
     var ay = a.y + a.h / 2;
@@ -1022,7 +1091,14 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
     group.addEventListener('click', function (event) {
       event.stopPropagation();
+      if (state.suppressNodeClick) {
+        state.suppressNodeClick = false;
+        return;
+      }
       selectNode(node.id);
+    });
+    group.addEventListener('pointerdown', function (event) {
+      beginNodeDrag(node.id, event);
     });
     group.addEventListener('keydown', function (event) {
       if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
@@ -1087,6 +1163,37 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       width: Math.max(Math.round(rect.width), 320),
       height: Math.max(Math.round(rect.height), 240)
     };
+  }
+
+  function eventPoint(event) {
+    var rect = svgRoot.getBoundingClientRect();
+    var size = svgSize();
+    return {
+      x: (event.clientX - rect.left) * size.width / Math.max(rect.width, 1),
+      y: (event.clientY - rect.top) * size.height / Math.max(rect.height, 1)
+    };
+  }
+
+  function beginNodeDrag(nodeId, event) {
+    if (event.button !== 0 || !state.positions[nodeId]) {
+      return;
+    }
+    var point = eventPoint(event);
+    var place = state.positions[nodeId];
+    nodeDrag = {
+      id: nodeId,
+      offsetX: (point.x - state.view.x) / state.view.scale - place.x,
+      offsetY: (point.y - state.view.y) / state.view.scale - place.y,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false
+    };
+    svgRoot.classList.add('dragging');
+    if (svgRoot.setPointerCapture) {
+      svgRoot.setPointerCapture(event.pointerId);
+    }
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   function fitView() {
@@ -2052,12 +2159,12 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     byId('zoom-in').addEventListener('click', function () { zoomBy(1.2); });
     byId('zoom-out').addEventListener('click', function () { zoomBy(1 / 1.2); });
     byId('zoom-fit').addEventListener('click', fitView);
+    byId('layout-reset').addEventListener('click', resetLayout);
     byId('zoom-reset').addEventListener('click', function () {
       state.view = { scale: 1, x: 0, y: 0 };
       applyView();
     });
 
-    var dragging = null;
     svgRoot.addEventListener('wheel', function (event) {
       event.preventDefault();
       var rect = svgRoot.getBoundingClientRect();
@@ -2082,7 +2189,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       if (target && target.closest && target.closest('.node')) {
         return;
       }
-      dragging = { x: event.clientX, y: event.clientY, vx: state.view.x, vy: state.view.y };
+      panDrag = { x: event.clientX, y: event.clientY, vx: state.view.x, vy: state.view.y };
       svgRoot.classList.add('dragging');
       if (svgRoot.setPointerCapture) {
         svgRoot.setPointerCapture(event.pointerId);
@@ -2090,25 +2197,44 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       event.preventDefault();
     });
     svgRoot.addEventListener('pointermove', function (event) {
-      if (!dragging) {
+      if (nodeDrag) {
+        var point = eventPoint(event);
+        var place = state.positions[nodeDrag.id];
+        if (!place) {
+          return;
+        }
+        place.x = Math.round((point.x - state.view.x) / state.view.scale - nodeDrag.offsetX);
+        place.y = Math.round((point.y - state.view.y) / state.view.scale - nodeDrag.offsetY);
+        nodeDrag.moved = nodeDrag.moved || Math.abs(event.clientX - nodeDrag.startX) > 3 || Math.abs(event.clientY - nodeDrag.startY) > 3;
+        renderGraph();
+        return;
+      }
+      if (!panDrag) {
         return;
       }
       var size = svgSize();
       var rect = svgRoot.getBoundingClientRect();
       var scaleX = size.width / Math.max(rect.width, 1);
       var scaleY = size.height / Math.max(rect.height, 1);
-      state.view.x = dragging.vx + (event.clientX - dragging.x) * scaleX;
-      state.view.y = dragging.vy + (event.clientY - dragging.y) * scaleY;
+      state.view.x = panDrag.vx + (event.clientX - panDrag.x) * scaleX;
+      state.view.y = panDrag.vy + (event.clientY - panDrag.y) * scaleY;
       applyView();
     });
     function endDrag() {
-      dragging = null;
+      if (nodeDrag) {
+        if (nodeDrag.moved) {
+          state.suppressNodeClick = true;
+          saveLayout();
+        }
+        nodeDrag = null;
+      }
+      panDrag = null;
       svgRoot.classList.remove('dragging');
     }
     svgRoot.addEventListener('pointerup', endDrag);
     svgRoot.addEventListener('pointercancel', endDrag);
     svgRoot.addEventListener('pointerleave', function () {
-      if (dragging) {
+      if (panDrag || nodeDrag) {
         endDrag();
       }
     });
@@ -2219,6 +2345,8 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     }
     state.model = buildModel(loaded.data);
     state.positions = computeLayout(state.model);
+    state.layoutKey = layoutStorageKey(state.model);
+    restoreSavedLayout();
     state.tree = buildTree(state.model);
     populateAreas();
     renderGraph();

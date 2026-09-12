@@ -20,7 +20,7 @@ Turn an idea into a clear project plan, build a documentation system, or untangl
 
 Context Cartographer is a skill for Codex, Claude Code, Cursor, and other coding agents. It helps the agent understand a project, put durable knowledge in the right files, and return to that context later without rereading the whole repository.
 
-Version **0.4.0** is the current release.
+Version **0.4.1** is the current release.
 
 ### When to use it
 
@@ -39,7 +39,7 @@ An explicit documentation request always stays a documentation task. For example
 - A short project instruction file that points agents to the right context.
 - A documentation map with real links, ownership, and reading conditions.
 - Optional project documents for architecture, product, design, deployment, API, security, integrations, administration, content, or code rules — only when the project needs them.
-- A private offline HTML graph for browsing documents and their relationships.
+- A private offline HTML graph for browsing documents and their relationships, with Obsidian-style pan, zoom, and draggable nodes.
 - A precise section reader that includes the document preamble and parent headings.
 - A resumable decision record for longer idea or planning sessions.
 - Checks for broken addresses, duplicate owners, missing routes, stale graphs, and incomplete scans.
@@ -169,7 +169,7 @@ The helpers use only the Python standard library. They do not fetch external lin
 
 ### Quality checks
 
-Release 0.4.0 passes the package validator, behavioral smoke tests, and **420 unit and packaging tests** on Python 3.9.6 and 3.14.6. GitHub Actions repeats the same checks on Python 3.9 and 3.14.
+Release 0.4.1 refreshes the offline graph with a quieter, Obsidian-inspired canvas, draggable nodes, and browser-local layout persistence with a one-click automatic-layout reset. Its verification results are recorded with the release after CI completes.
 
 The offline graph was also checked in headless Chromium at 1440×900 for rendering, document relationships, problem filtering, and JavaScript errors. Live end-to-end sessions in every supported client have not been tested.
 
@@ -196,7 +196,7 @@ The skill checks GitHub for a newer release at most once per day. Installing an 
 
 Context Cartographer — скилл для Codex, Claude Code, Cursor и других программных агентов. Он помогает разобраться в проекте, разложить постоянные знания по правильным файлам и позже загрузить только нужный контекст, не перечитывая весь репозиторий.
 
-Текущая версия — **0.4.0**.
+Текущая версия — **0.4.1**.
 
 ### Когда пригодится
 
@@ -215,7 +215,7 @@ Context Cartographer — скилл для Codex, Claude Code, Cursor и дру�
 - Короткую корневую инструкцию, которая направляет агентов к нужному контексту.
 - Карту документации с настоящими ссылками, владельцами тем и условиями чтения.
 - При необходимости — отдельные документы об архитектуре, продукте, дизайне, развёртывании, API, безопасности, интеграциях, администрировании, контенте или правилах кода.
-- Приватный офлайн-граф документов и связей между ними.
+- Приватный офлайн-граф документов и связей между ними: в духе Obsidian, с панорамированием, масштабом и перетаскиванием узлов.
 - Точное чтение раздела вместе с преамбулой документа и родительскими заголовками.
 - Сохраняемое состояние решений для длинного обсуждения идеи или плана.
 - Проверку битых адресов, повторных владельцев, пропущенных маршрутов, устаревшего графа и неполного сканирования.
@@ -345,7 +345,7 @@ python3 context-cartographer/scripts/documentation_graph.py --root /path/to/proj
 
 ### Проверка качества
 
-Версия 0.4.0 проходит валидатор упаковки, smoke-тесты и **420 модульных и упаковочных тестов** на Python 3.9.6 и 3.14.6. GitHub Actions повторяет те же проверки на Python 3.9 и 3.14.
+В 0.4.1 офлайн-граф получил спокойное оформление в духе Obsidian, перетаскивание узлов и локальное сохранение раскладки в браузере с возвратом к автоматической раскладке одной кнопкой. Результаты проверок будут зафиксированы в релизе после завершения CI.
 
 Офлайн-граф также проверен в headless Chromium при разрешении 1440 × 900: отрисовка, связи между документами, фильтр проблем и ошибки JavaScript. Сквозные живые сессии во всех поддерживаемых клиентах не проверялись.
 
