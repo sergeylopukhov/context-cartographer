@@ -156,6 +156,9 @@ svg#graph.dragging { cursor: grabbing; }
 }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid currentColor; }
+.legend .doc-dot, .legend .topic-dot { width: 12px; height: 12px; border: 2px solid var(--panel); background: var(--accent); }
+.legend .doc-dot { border-radius: 50%; }
+.legend .topic-dot { background: var(--own); }
 .legend i.route { color: var(--route); }
 .legend i.own { color: var(--own); border-top-style: double; border-top-width: 3px; }
 .legend i.ref { color: var(--ref); border-top-style: dashed; }
@@ -280,7 +283,8 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 .statusbar .mono { font-family: var(--mono); word-break: break-all; }
 .statusbar strong { color: var(--ink); }
 
-.node rect, .node .label, .node .sub { pointer-events: none; }
+.node .body, .node .label, .node .sub { pointer-events: none; }
+.node .hit { fill: transparent; pointer-events: all; }
 .node { cursor: grab; }
 .node.dragging { cursor: grabbing; }
 .node rect.body { fill: var(--accent); stroke: var(--panel); stroke-width: 2; }
@@ -304,6 +308,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 .edge.dim { opacity: 0.2; }
 .edge.hidden { display: none; }
 .edge.related { stroke-width: 2.2; opacity: 1; }
+.cluster-hull { fill: var(--accent-soft); stroke: var(--line); stroke-width: 1; opacity: 0.34; pointer-events: none; }
 .cluster-label { fill: var(--muted); font-size: 13px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
 .empty-note { fill: var(--muted); font-size: 14px; }
 
@@ -337,7 +342,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
   </span>
   <span class="checks">
     <label><input type="checkbox" id="problems-only"> problems only</label>
-    <label><input type="checkbox" id="show-connections"> all connections</label>
+    <label><input type="checkbox" id="show-connections" checked> all connections</label>
   </span>
   <span class="zoom" role="group" aria-label="Zoom and pan">
     <button type="button" class="icon-btn" id="layout-reset" title="Restore automatic layout" aria-label="Restore automatic layout">
@@ -366,6 +371,9 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     <div class="canvas">
       <svg id="graph" role="img" aria-label="Documentation graph" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
       <div class="legend" id="legend">
+        <span><i class="doc-dot"></i>document</span>
+        <span><i class="topic-dot"></i>topic</span>
+        <span>size = relations</span>
         <span><i class="route"></i>routes to</span>
         <span><i class="own"></i>owns topic</span>
         <span><i class="ref"></i>references</span>
@@ -599,7 +607,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     area: '',
     types: { routes_to: true, owns_topic: true, references: true, depends_on: true },
     problemsOnly: false,
-    showConnections: false,
+    showConnections: true,
     view: { scale: 1, x: 0, y: 0 },
     layoutKey: '',
     suppressNodeClick: false
@@ -870,6 +878,11 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     var positions = {};
     var owners = {};
     var areas = {};
+    var degree = {};
+    model.edges.forEach(function (edge) {
+      degree[edge.from] = (degree[edge.from] || 0) + 1;
+      degree[edge.to] = (degree[edge.to] || 0) + 1;
+    });
     model.documents.forEach(function (doc) {
       owners[doc.path] = doc.area || 'project';
       areas[owners[doc.path]] = true;
@@ -895,7 +908,9 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       var angle = (seed % 6283) / 1000;
       var distance = 35 + (seed % 110);
       var center = centers[area] || centers.project || { x: 0, y: 0 };
-      var size = entry.path ? 18 : 12;
+      var relationCount = degree[id] || 0;
+      var size = entry.path ? 14 + Math.min(15, Math.sqrt(relationCount) * 4) : 8 + Math.min(10, Math.sqrt(relationCount) * 3);
+      if (model.nodes[id] && model.nodes[id].problemCount) { size += 4; }
       positions[id] = { x: center.x + Math.cos(angle) * distance, y: center.y + Math.sin(angle) * distance, w: size, h: size, area: area, vx: 0, vy: 0 };
       items.push(id);
     });
@@ -928,7 +943,18 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     var minX = Infinity, minY = Infinity;
     items.forEach(function (id) { minX = Math.min(minX, positions[id].x); minY = Math.min(minY, positions[id].y); });
     items.forEach(function (id) { positions[id].x = Math.round(positions[id].x - minX + 90); positions[id].y = Math.round(positions[id].y - minY + 90); delete positions[id].vx; delete positions[id].vy; });
-    state.clusters = areaNames.map(function (area) { var center = centers[area]; return { name: area, x: Math.round(center.x - minX + 90), y: Math.round(center.y - minY + 90) }; });
+    state.clusters = areaNames.map(function (area) {
+      var center = centers[area];
+      var radius = 80;
+      items.forEach(function (id) {
+        var point = positions[id];
+        if (point.area === area) {
+          var dx = point.x - (center.x - minX + 90), dy = point.y - (center.y - minY + 90);
+          radius = Math.max(radius, Math.sqrt(dx * dx + dy * dy) + 46);
+        }
+      });
+      return { name: area, x: Math.round(center.x - minX + 90), y: Math.round(center.y - minY + 90), radius: Math.round(radius) };
+    });
     return positions;
   }
 
@@ -1028,6 +1054,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     edgeElements = [];
 
     (state.clusters || []).forEach(function (cluster) {
+      clusterLayer.appendChild(svgMake('circle', { cx: cluster.x, cy: cluster.y, r: cluster.radius, 'class': 'cluster-hull' }));
       var label = svgMake('text', { x: cluster.x, y: cluster.y, 'class': 'cluster-label', 'text-anchor': 'middle' });
       label.textContent = cluster.name;
       clusterLayer.appendChild(label);
@@ -1070,12 +1097,21 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
   function svgNode(node) {
     var place = state.positions[node.id];
+    var hitRadius = 22 / Math.max(state.view.scale, 0.1);
     var group = svgMake('g', {
       'class': 'node ' + node.kind,
       'data-node-id': node.id,
       tabindex: '0',
       role: 'button'
     });
+    group.appendChild(svgMake('rect', {
+      'class': 'hit',
+      x: place.x - hitRadius,
+      y: place.y - hitRadius,
+      width: hitRadius * 2,
+      height: hitRadius * 2,
+      rx: hitRadius
+    }));
     group.appendChild(svgMake('rect', {
       'class': 'body',
       x: place.x - place.w / 2,
@@ -1169,7 +1205,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
   function applyLabelDetail() {
     Object.keys(nodeElements).forEach(function (id) {
       var node = state.model.nodes[id];
-      nodeElements[id].classList.toggle('show-label', state.view.scale >= 0.72 || (state.query && nodeMatches(node)));
+      nodeElements[id].classList.toggle('show-label', state.view.scale >= 1.1 || (state.query && nodeMatches(node)));
     });
   }
 
@@ -1196,6 +1232,18 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
   function applyView() {
     viewport.setAttribute('transform', 'translate(' + state.view.x + ' ' + state.view.y + ') scale(' + state.view.scale + ')');
+    Object.keys(nodeElements).forEach(function (id) {
+      var hit = nodeElements[id].querySelector('.hit');
+      var place = state.positions[id];
+      var radius = 22 / Math.max(state.view.scale, 0.1);
+      if (hit && place) {
+        hit.setAttribute('x', String(place.x - radius));
+        hit.setAttribute('y', String(place.y - radius));
+        hit.setAttribute('width', String(radius * 2));
+        hit.setAttribute('height', String(radius * 2));
+        hit.setAttribute('rx', String(radius));
+      }
+    });
   }
 
   function svgSize() {
@@ -2271,9 +2319,12 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     });
     function endDrag() {
       if (nodeDrag) {
+        var draggedNodeId = nodeDrag.id;
         if (nodeDrag.moved) {
           state.suppressNodeClick = true;
           saveLayout();
+        } else {
+          selectNode(draggedNodeId);
         }
         nodeDrag = null;
       }

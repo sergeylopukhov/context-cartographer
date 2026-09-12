@@ -20,7 +20,7 @@ Turn an idea into a clear project plan, build a documentation system, or untangl
 
 Context Cartographer is a skill for Codex, Claude Code, Cursor, and other coding agents. It helps the agent understand a project, put durable knowledge in the right files, and return to that context later without rereading the whole repository.
 
-Version **0.4.2** is the current release.
+Version **0.4.21** is the current release.
 
 ### When to use it
 
@@ -169,7 +169,7 @@ The helpers use only the Python standard library. They do not fetch external lin
 
 ### Quality checks
 
-Release 0.4.2 replaces the file-grid graph with a deterministic, area-clustered force layout. Dense snapshots begin without a wall of connections; select a node to see its neighbourhood, or opt into the complete relation set. Its verification results are recorded with the release after CI completes.
+Release 0.4.21 makes the graph usable as an overview: every relation is visible by default, node size encodes relationship count and problems, and documentation areas have soft cluster boundaries. Documents and topics remain visually distinct. A selected node exposes its immediate neighbourhood in the details pane and with highlighted edges. Nodes have a screen-sized hit target, so click, Enter, and Space reliably select them while dragging remains available.
 
 The offline graph was also checked in headless Chromium at 1440×900 for rendering, document relationships, problem filtering, and JavaScript errors. Live end-to-end sessions in every supported client have not been tested.
 
@@ -196,7 +196,7 @@ The skill checks GitHub for a newer release at most once per day. Installing an 
 
 Context Cartographer — скилл для Codex, Claude Code, Cursor и других программных агентов. Он помогает разобраться в проекте, разложить постоянные знания по правильным файлам и позже загрузить только нужный контекст, не перечитывая весь репозиторий.
 
-Текущая версия — **0.4.2**.
+Текущая версия — **0.4.21**.
 
 ### Когда пригодится
 
@@ -345,7 +345,7 @@ python3 context-cartographer/scripts/documentation_graph.py --root /path/to/proj
 
 ### Проверка качества
 
-В 0.4.2 табличная раскладка заменена на детерминированную force-раскладку с группировкой по областям. На плотной карте связи показываются для выбранного узла, а полный набор включается отдельным переключателем. Результаты проверок будут зафиксированы в релизе после завершения CI.
+В 0.4.21 граф стал рабочей обзорной картой: все связи видны по умолчанию, размер узла показывает число связей и проблемы, а области документации имеют мягкие границы кластеров. Документы и темы остаются визуально различимыми. При выборе узла подсвечиваются его соседи и связи, а справа открываются детали. У каждого узла есть экранная зона нажатия: клик, Enter и Space надёжно выбирают его, при этом перетаскивание сохранено.
 
 Офлайн-граф также проверен в headless Chromium при разрешении 1440 × 900: отрисовка, связи между документами, фильтр проблем и ошибки JavaScript. Сквозные живые сессии во всех поддерживаемых клиентах не проверялись.
 
