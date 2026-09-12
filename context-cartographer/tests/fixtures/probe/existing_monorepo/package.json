@@ -1,0 +1,5 @@
+{
+  "name": "parish-workspace",
+  "private": true,
+  "workspaces": ["packages/*"]
+}

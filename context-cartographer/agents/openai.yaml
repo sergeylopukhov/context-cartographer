@@ -1,4 +1,4 @@
 interface:
   display_name: "Context Cartographer"
-  short_description: "Build agent-facing project docs"
-  default_prompt: "Use $context-cartographer to inspect this project, resolve only the decisions that require me, and set up, audit, migrate, or restructure its agent-facing documentation."
+  short_description: "Docs, rules, graph, and idea-to-project"
+  default_prompt: "Use $context-cartographer to work out an idea or plan a new app or feature, or to set up, audit, migrate, and restructure this project's agent-facing documentation, rules, and local graph."

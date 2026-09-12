@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="readings">
+  <h1>{{ title }}</h1>
+  <ul>
+    {% for reading in readings %}
+    <li>{{ reading.reference }} — {{ reading.title }}</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

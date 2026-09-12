@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="480" viewBox="0 0 320 480">
+  <rect width="320" height="480" fill="#f7f5ef"/>
+  <text x="24" y="64" font-size="20">Reading planner</text>
+  <rect x="24" y="96" width="272" height="40" fill="#ffffff" stroke="#999"/>
+  <text x="32" y="122" font-size="14">Choose a date</text>
+  <rect x="24" y="160" width="272" height="240" fill="#ffffff" stroke="#999"/>
+  <text x="32" y="188" font-size="14">Readings for the day</text>
+</svg>

@@ -13,7 +13,8 @@ Before moving or creating docs, identify the project profile. Do not force every
 - Keep public repo docs such as `README.md`, `LICENSE`, `CONTRIBUTING.md`, changelogs, examples, and user-facing content in their conventional locations unless the user explicitly asks to move them.
 - Do not move user-facing content, blog posts, docs-site pages, or SEO pages into project-memory `docs/` merely because they are Markdown.
 - Keep project-memory docs local-only and ignored by VCS unless the user explicitly asks to track, publish, upload, or deploy them.
-- Do not add a broad `docs/` ignore rule when `docs/` is a public docs site, package docs, or user-facing content folder; ask or use precise patterns.
+- Ignore the derived graph directory `.context-cartographer/` with a precise pattern.
+- Do not add a broad `docs/` ignore rule when `docs/` is a public docs site, package docs, or user-facing content folder; ask or use precise patterns for the private files only.
 
 ## Split Oversized Docs
 
@@ -65,6 +66,7 @@ After deletion:
 
 - run `rg` for the removed filename;
 - verify links from `docs/architecture.md`;
+- fix the incoming addresses in the same authorized change and refresh the derived graph once after the change set;
 - report what was removed and where important facts moved.
 
 ## New Owner Files
@@ -76,7 +78,9 @@ Create a new owner file when:
 - putting it elsewhere would create noise or duplication;
 - no existing owner can hold it without mixing responsibilities.
 
-Under automatic durable maintenance, create that owner and update `docs/architecture.md` without asking for approval. Do not create a separate owner for temporary, one-off, or overlapping material; place durable facts in the closest existing owner instead.
+Under automatic durable maintenance, create that owner and update `docs/architecture.md` without asking for approval, and do not invoke `context-cartographer` for an obvious new owner. Follow `docs/documentation-rules.md` for the owner rules, then let the full skill handle genuinely unclear ownership, conflicting owners, or a nontrivial restructuring.
+
+Do not create a separate owner for temporary, one-off, or overlapping material; place durable facts in the closest existing owner instead.
 
 ## What Not To Do
 

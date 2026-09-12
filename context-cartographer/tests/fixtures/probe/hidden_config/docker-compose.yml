@@ -1,0 +1,5 @@
+services:
+  planner:
+    build: .
+    environment:
+      - EXAMPLE_API_KEY

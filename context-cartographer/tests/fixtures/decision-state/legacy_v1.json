@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "topic": "Project documentation setup",
+  "status": "active",
+  "facts": [
+    {
+      "id": "fact_stack",
+      "statement": "The project is a Laravel application.",
+      "source": "composer.json and artisan",
+      "status": "verified"
+    }
+  ],
+  "conflicts": [],
+  "decisions": [
+    {
+      "id": "agent_target",
+      "question": "Which coding agents should receive root instructions?",
+      "status": "resolved",
+      "depends_on": [],
+      "conflicts": [],
+      "recommendation": "Codex only, because no other agent configuration exists.",
+      "answer": "Codex"
+    },
+    {
+      "id": "code_rules_mode",
+      "question": "Should this project use docs/code_rules.md?",
+      "status": "pending",
+      "depends_on": [
+        "agent_target"
+      ],
+      "conflicts": [],
+      "recommendation": null,
+      "answer": null
+    }
+  ],
+  "out_of_scope": [
+    "Application code changes"
+  ]
+}

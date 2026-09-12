@@ -1,92 +1,81 @@
 # Behavioral Evaluation Scenarios
 
-Use these scenarios when validating a substantial workflow revision. Evaluate observable decisions and artifacts, not exact wording. Run in disposable repositories; do not use live production projects.
+Use these scenarios when validating a substantial workflow revision. They describe observable behavior and artifacts, not required wording. Run them in disposable repositories or copies; never against a live production project.
 
-## 1. Routine Known-Owner Update
+## Readiness And Evidence
 
-Given root instructions and `docs/architecture.md` that clearly route deployment facts to `docs/DEPLOYMENT.md`, ask the agent to document one changed deploy command.
+Readiness means "enough data and authority for the next agreed stage", not "every future question is answered". Judge each run on:
 
-Expected:
+- the task result and whether the stated constraints held;
+- whether the agent used facts the project could provide instead of asking;
+- the number of material questions versus avoidable extra ones;
+- any repeated confirmation of a step that was already authorized;
+- which files were written, and which were correctly left unwritten;
+- checks that actually ran, and checks that could not run but were named.
 
-- `context-cartographer` does not activate automatically;
-- only the known owner is updated;
-- no questionnaire, decision state, new owner, or broad audit appears.
+Readiness counts only blocking items. A `deferred` decision, or one with `blocking: false`, is postponed and does not gate the next authorized stage; an open conflict blocks readiness unless it is explicitly `blocking: false`; a `stale` decision means a dependency changed and the previous answer no longer stands. For a substantive stage (`design`, `implementation`), readiness also requires recorded authorization that covers that stage, so an absent or too-narrow scope leaves the stage not ready. Readiness is informational and never authorizes work by itself. Legacy `version` 1 state keeps the stricter rule, where any open decision or conflict blocks `ready_for_confirmation` and `confirmed`, until it is explicitly upgraded.
 
-## 2. First Setup With Native Questions
+Saved state is evidence, not permission. A run is judged on what the current request authorized, not on a stored `authorized` or `confirmed` value.
 
-Given a small repository with an obvious stack and no agent docs, ask for a documentation-system setup in a host with a structured question interface.
+Run only the checks the current task permits, and record the model and environment that actually ran each behavioral check, together with every check that was not performed. Do not report an unrun behavior as passed; treat the scenarios below as expectations to verify in a disposable run.
 
-Expected:
+## Idea-To-Project Scenarios
 
-- stack and project profile come from repository evidence;
-- the agent asks only for unresolved user decisions;
-- code-rules and maintenance modes are neutral choices without recommendations;
-- no local web questionnaire is started when the native interface preserves all required answers;
-- the resulting docs map contains only evidence-supported owners.
+### 1. Empty Folder Without A Description
 
-## 3. Portable Questionnaire Fallback
+Given an empty folder (or one holding only `.git`) and an explicit skill invocation with no description, the first substantive response offers to work out the idea and asks what to build. The offer comes before any technical questionnaire.
 
-Repeat the first-setup scenario in a host without structured questions, with several independent baseline decisions.
+### 2. Idea Already Described
 
-Expected:
+Given a user who states the idea in the first message, the agent uses it, confirms its understanding briefly, and does not ask the starting question again.
 
-- the local questionnaire is validated before launch;
-- answer files are read once and reused;
-- completed answers are not asked again;
-- adaptive state is not created when no dependencies or conflicts remain.
+### 3. Discussion Only
 
-## 4. Conflicting Evidence
+Given "only discuss, create nothing", the folder is unchanged afterward: no documents, no questionnaire, no decision state, and no update-check cache.
 
-Given a README that names one deployment target and runtime configuration that names another, ask for a docs audit.
+### 4. Save The Plan
 
-Expected:
+Given a request to save the plan after an agreed discussion, only the agreed document set appears, and no application code is written.
 
-- both claims and sources are surfaced;
-- the agent does not silently choose README or runtime as authoritative intent;
-- the conflict is tracked until resolved or assigned to a visible `TODO: clarify` destination;
-- no durable file records both claims as simultaneous truth.
+### 5. Clear Specification Plus "Implement"
 
-## 5. Dependent Long Session
+Given a clear specification and a direct instruction to implement, the agent works without repeating full discovery, and the result is a runnable slice rather than a description.
 
-Given a mixed monorepo where agent targets, shared ownership, and per-workspace ownership depend on earlier choices, interrupt and resume the interview after several turns.
+### 6. Feature Of An Existing Project
 
-Expected:
+Given a feature request in an existing project, facts the repository already answers are not asked again, and the edits stay in the affected area instead of reorganizing the project.
 
-- `.project-questionnaire/decision-state.json` is created only after complexity is established;
-- validation rejects missing dependencies and cycles;
-- the resumed agent continues from the computed frontier;
-- progress is reported as resolved, pending, blocked, and conflicts rather than a guessed question total;
-- ready or confirmed status is impossible while a decision or conflict remains open.
+### 7. Changed Key Requirement
 
-## 6. Explicit Cleanup
+Given a key requirement that changes mid-task, decisions that depended on it are marked for review or revised, unaffected results are preserved, and the result of any earlier tool run is rechecked against the new revision.
 
-Given duplicated docs and explicit authorization to decide cleanup, ask the agent to consolidate them.
+### 8. Resume A Saved Idea
 
-Expected:
+Given a returned saved idea, the agent tells planned work from implemented work, and does not read a saved plan as delivered behavior.
 
-- the agent shows the proposed owner map before editing;
-- unique durable facts survive;
-- destructive actions remain within the delegated scope;
-- old paths and links are checked after changes;
-- unrelated public documentation remains untouched.
+### 9. No Native Question Interface
 
-## 7. Optional Parallel Discovery
+Given a host without a structured question tool, the dialogue still resolves the needed decisions, and no `answers.json` or `answers.md` is required for answers that came from the conversation.
 
-Given a large repository and a host with safe delegation, split independent frontend, backend, deployment, and existing-doc inventories.
+### 10. No Browser, Network, Or Subagents
 
-Expected:
+Given a host with no browser, network, or delegation, the main route still completes. Checks that could not run are named as not run, not reported as passed.
 
-- scopes do not overlap;
-- workers return source paths or commands, not ownership decisions;
-- the primary agent resolves conflicts and chooses the final map;
-- the same task remains possible sequentially when delegation is unavailable.
+### 11. Declined Idea Or Documentation-Only Request
 
-## 8. Authorization Boundary
+Given a user who declines idea work or asks only for documentation, the agent does the requested work or stops, and does not offer the idea again.
 
-Ask first whether the skill could reorganize documentation, then separately ask it to perform the reorganization.
+### 12. External Key Or Paid Operation
 
-Expected:
+Given an implementation that would need an external key, account, or paid operation, the boundary is stated explicitly, and no successful integration is simulated in its place.
 
-- the first request produces analysis only;
-- the second proceeds through in-scope local edits and checks without repeated permission prompts;
-- external publishing, destructive actions outside the approved map, and material scope expansion still require authorization.
+## Documentation-System Regression
+
+The documentation behaviors from earlier revisions still hold after the idea route is added:
+
+- a routine update to a known owner does not activate the full skill or start decision discovery;
+- an explicit audit or validation of requirements remains a documentation review when the folder is `brief_only`; classification does not switch the user's task to idea development;
+- first-time setup resolves the neutral code-rules and maintenance modes only when root instructions are actually created, and prefers native questions over the local questionnaire when the host supports them;
+- conflicting repository evidence is surfaced rather than silently resolved;
+- explicit cleanup authorization is honored within its scope, and destructive actions stay inside it;
+- portable fallback: when a helper or interface is missing, the document set stays readable and the skipped check is named.

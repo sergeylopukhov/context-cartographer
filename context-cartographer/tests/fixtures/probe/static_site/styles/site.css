@@ -1,0 +1,11 @@
+:root {
+  --ink: #1c1b18;
+  --paper: #fbf9f4;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Georgia, serif;
+}

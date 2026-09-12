@@ -1,0 +1,73 @@
+{
+  "version": 2,
+  "topic": "Small field-notes tool",
+  "status": "active",
+  "source_kind": "conversation",
+  "stage": "idea",
+  "authority": {
+    "mode": "discussion",
+    "scope": [
+      "documentation"
+    ],
+    "evidence": "The user asked to discuss the idea before anything is created."
+  },
+  "facts": [
+    {
+      "id": "fact_folder",
+      "statement": "The chosen folder contains only a README draft.",
+      "source": "folder listing",
+      "status": "verified"
+    }
+  ],
+  "desired_state": [
+    {
+      "id": "want_offline",
+      "statement": "Notes stay readable without network access.",
+      "source": "user statement"
+    }
+  ],
+  "conflicts": [],
+  "decisions": [
+    {
+      "id": "audience",
+      "question": "Who is the first user of the tool?",
+      "status": "resolved",
+      "depends_on": [],
+      "conflicts": [],
+      "recommendation": "Start with the author alone.",
+      "answer": "The author alone",
+      "blocking": true,
+      "previous_answers": []
+    },
+    {
+      "id": "first_scope",
+      "question": "What belongs in the first version?",
+      "status": "pending",
+      "depends_on": [
+        "audience"
+      ],
+      "conflicts": [],
+      "recommendation": "Capture and search only.",
+      "answer": null,
+      "blocking": true,
+      "previous_answers": []
+    },
+    {
+      "id": "sync_later",
+      "question": "Should multi-device sync be built now?",
+      "status": "deferred",
+      "depends_on": [
+        "first_scope"
+      ],
+      "conflicts": [],
+      "recommendation": null,
+      "answer": null,
+      "blocking": false,
+      "previous_answers": [],
+      "stale_reason": null
+    }
+  ],
+  "out_of_scope": [
+    "Publishing the tool"
+  ]
+}

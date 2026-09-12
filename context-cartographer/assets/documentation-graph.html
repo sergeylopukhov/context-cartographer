@@ -1,0 +1,2241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="context-cartographer-renderer" content="__CONTEXT_CARTOGRAPHER_RENDERER_FINGERPRINT__">
+<meta name="context-cartographer-renderer-version" content="__CONTEXT_CARTOGRAPHER_RENDERER_VERSION__">
+<title>Documentation graph</title>
+<style>
+:root {
+  --bg: #f4f6f8;
+  --panel: #ffffff;
+  --ink: #1b2027;
+  --muted: #5c6675;
+  --line: #d7dce4;
+  --line-strong: #b9c1cd;
+  --accent: #2f5fbf;
+  --accent-soft: #e6edfa;
+  --route: #2f5fbf;
+  --own: #4d7a45;
+  --ref: #7c6a2f;
+  --dep: #8d3f6a;
+  --error: #b3261e;
+  --warn: #8a5300;
+  --info: #1c5f74;
+  --error-bg: #fbe9e7;
+  --warn-bg: #fdf2dc;
+  --info-bg: #e6f1f5;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.07);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111419;
+    --panel: #171b21;
+    --ink: #e7eaf0;
+    --muted: #9aa4b3;
+    --line: #2b323c;
+    --line-strong: #3b424e;
+    --accent: #86aaf2;
+    --accent-soft: #1e2733;
+    --route: #86aaf2;
+    --own: #94c689;
+    --ref: #d6bd76;
+    --dep: #dc93bb;
+    --error: #f0a9a3;
+    --warn: #e0b465;
+    --info: #8cc4d6;
+    --error-bg: #3a1f1d;
+    --warn-bg: #362a16;
+    --info-bg: #1b3038;
+    --shadow: none;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+a { color: var(--accent); }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+.topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.topbar .title { font-weight: 600; margin-right: 4px; }
+.tool { display: flex; align-items: center; gap: 6px; }
+.tool > label { color: var(--muted); font-size: 12px; }
+.search { display: flex; align-items: center; gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 0 8px; }
+.search input { border: 0; background: transparent; padding: 6px 0; width: 220px; outline: none; }
+.search svg { color: var(--muted); flex: none; }
+select { background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 5px 6px; }
+.checks { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+.checks label { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; }
+.zoom { display: flex; gap: 4px; margin-left: auto; }
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+}
+.icon-btn:hover { border-color: var(--line-strong); background: var(--accent-soft); }
+.icon-btn:focus-visible, .trow:focus-visible, .chip:focus-visible, .problem:focus-visible, .linkish:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr) minmax(300px, 380px);
+}
+.panel { background: var(--panel); min-height: 0; display: flex; flex-direction: column; }
+.outliner { border-right: 1px solid var(--line); }
+.details { border-left: 1px solid var(--line); }
+.center { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
+.canvas { position: relative; min-height: 0; background: var(--bg); border-bottom: 1px solid var(--line); }
+svg#graph { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+svg#graph.dragging { cursor: grabbing; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  flex: none;
+}
+.panel-head .count { text-transform: none; letter-spacing: 0; color: var(--ink); }
+
+.legend {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  max-width: calc(100% - 20px);
+  padding: 6px 8px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  color: var(--muted);
+}
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid currentColor; }
+.legend i.route { color: var(--route); }
+.legend i.own { color: var(--own); border-top-style: double; border-top-width: 3px; }
+.legend i.ref { color: var(--ref); border-top-style: dashed; }
+.legend i.dep { color: var(--dep); border-top-style: dotted; }
+.legend b { display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #fff; background: var(--error); }
+.legend b.info { background: var(--info); }
+
+.tree { overflow: auto; padding: 6px 6px 16px; flex: 1 1 auto; }
+.trow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 6px 4px calc(6px + (var(--depth, 1) - 1) * 13px);
+  border-radius: 4px;
+  cursor: pointer;
+  unicode-bidi: plaintext;
+}
+.trow:hover { background: var(--accent-soft); }
+.trow[aria-selected="true"] { background: var(--accent-soft); box-shadow: inset 2px 0 0 var(--accent); }
+.trow .chev { flex: none; width: 12px; height: 12px; position: relative; }
+.trow .chev::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid currentColor;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+.trow[aria-expanded="true"] .chev::before { transform: rotate(90deg); left: 4px; top: 2px; }
+.trow .tlabel { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trow .tmeta { flex: none; color: var(--muted); font-size: 11px; font-family: var(--mono); }
+.trow .tbadge { flex: none; font-size: 11px; font-weight: 700; color: var(--error); }
+.muted { color: var(--muted); }
+.tree-empty { padding: 10px 12px; color: var(--muted); }
+
+.problem-list { overflow: auto; max-height: 32vh; padding: 4px 8px 10px; }
+.problem-group { margin: 8px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.problem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 5px;
+  background: var(--panel);
+  padding: 6px 8px;
+  margin: 4px 0;
+}
+.problem.error { border-left-color: var(--error); background: var(--error-bg); }
+.problem.warning { border-left-color: var(--warn); background: var(--warn-bg); }
+.problem.info { border-left-color: var(--info); background: var(--info-bg); }
+.problem .phead { font-weight: 600; }
+.problem .pmeta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.problem .pmsg { margin-top: 2px; }
+
+.detail-body { overflow: auto; padding: 10px 12px 24px; flex: 1 1 auto; }
+.detail-title { margin: 0 0 2px; font-size: 15px; word-break: break-word; }
+.addr { font-family: var(--mono); font-size: 12px; color: var(--muted); word-break: break-all; margin-bottom: 8px; }
+.rows { display: grid; grid-template-columns: minmax(80px, auto) 1fr; gap: 2px 10px; margin: 0 0 10px; }
+.rows dt { color: var(--muted); font-size: 12px; }
+.rows dd { margin: 0; word-break: break-word; unicode-bidi: plaintext; }
+h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+ul.plain { list-style: none; margin: 0; padding: 0; }
+ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
+.linkish {
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+  color: var(--accent);
+  text-decoration: underline;
+  unicode-bidi: plaintext;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--panel);
+  padding: 3px 7px;
+  font-size: 12px;
+}
+.chip:hover { border-color: var(--line-strong); background: var(--accent-soft); }
+.toolrow { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.source {
+  display: flex;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--bg);
+  overflow: auto;
+  max-height: 46vh;
+}
+.source pre {
+  margin: 0;
+  padding: 6px 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre;
+}
+.source pre.gutter { color: var(--muted); text-align: right; border-right: 1px solid var(--line); user-select: none; }
+.source pre.code { unicode-bidi: plaintext; }
+.note { color: var(--muted); font-size: 12px; margin: 6px 0; }
+.banner { border: 1px solid var(--line); border-left: 4px solid var(--error); background: var(--error-bg); border-radius: 5px; padding: 8px; margin: 8px 0; }
+.banner button.linkish { display: block; margin: 3px 0; }
+
+.statusbar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  font-size: 12px;
+}
+.statusbar .mono { font-family: var(--mono); word-break: break-all; }
+.statusbar strong { color: var(--ink); }
+
+.node rect, .node .label, .node .sub { pointer-events: none; }
+.node { cursor: pointer; }
+.node rect.body { fill: var(--panel); stroke: var(--line-strong); stroke-width: 1; }
+.node.topic rect.body { fill: var(--accent-soft); }
+.node .label { font-size: 12px; fill: var(--ink); font-weight: 600; }
+.node .sub { font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
+.node .badge circle { fill: var(--error); }
+.node .badge.info circle { fill: var(--info); }
+.node .badge text { fill: #fff; font-size: 10px; font-weight: 700; }
+.node.dim { opacity: 0.25; }
+.node.hidden { display: none; }
+.node.selected rect.body { stroke: var(--accent); stroke-width: 2; }
+.node.related rect.body { stroke: var(--accent); }
+.node:focus-visible rect.body { stroke: var(--accent); stroke-width: 2; }
+.edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
+.edge.routes_to { stroke: var(--route); }
+.edge.owns_topic { stroke: var(--own); stroke-width: 2; }
+.edge.references { stroke: var(--ref); stroke-dasharray: 5 4; }
+.edge.depends_on { stroke: var(--dep); stroke-dasharray: 2 4; }
+.edge.dim { opacity: 0.2; }
+.edge.hidden { display: none; }
+.edge.related { stroke-width: 2.6; }
+.empty-note { fill: var(--muted); font-size: 14px; }
+
+@media (max-width: 1080px) {
+  main { grid-template-columns: 1fr; grid-auto-rows: min-content; overflow: auto; }
+  .outliner, .details { border: 0; border-bottom: 1px solid var(--line); }
+  .tree, .detail-body, .problem-list { max-height: 46vh; }
+  .canvas { height: 60vh; }
+  .search input { width: 100%; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="title">Documentation graph</span>
+  <span class="tool">
+    <span class="search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      <input id="search" type="search" placeholder="Search file, topic, heading" aria-label="Search files, topics and headings" autocomplete="off">
+    </span>
+  </span>
+  <span class="tool">
+    <label for="area-filter">Area</label>
+    <select id="area-filter" aria-label="Filter by project area"></select>
+  </span>
+  <span class="checks" role="group" aria-label="Filter by relation type">
+    <label><input type="checkbox" id="rel-routes_to" checked> routes to</label>
+    <label><input type="checkbox" id="rel-owns_topic" checked> owns topic</label>
+    <label><input type="checkbox" id="rel-references" checked> references</label>
+    <label><input type="checkbox" id="rel-depends_on" checked> depends on</label>
+  </span>
+  <span class="checks">
+    <label><input type="checkbox" id="problems-only"> problems only</label>
+  </span>
+  <span class="zoom" role="group" aria-label="Zoom and pan">
+    <button type="button" class="icon-btn" id="zoom-out" title="Zoom out" aria-label="Zoom out">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M8 11h6"></path></svg>
+    </button>
+    <button type="button" class="icon-btn" id="zoom-in" title="Zoom in" aria-label="Zoom in">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path><path d="M11 8v6"></path><path d="M8 11h6"></path></svg>
+    </button>
+    <button type="button" class="icon-btn" id="zoom-fit" title="Fit graph to view" aria-label="Fit graph to view">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+    </button>
+    <button type="button" class="icon-btn" id="zoom-reset" title="Reset view" aria-label="Reset view">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+    </button>
+  </span>
+</header>
+<main>
+  <aside class="panel outliner" aria-label="Documentation outline">
+    <div class="panel-head">Outline <span class="count" id="outline-count"></span></div>
+    <div class="tree" id="tree" role="tree" aria-label="Documents, topics and dependencies" tabindex="0"></div>
+  </aside>
+  <section class="center" aria-label="Graph and problems">
+    <div class="canvas">
+      <svg id="graph" role="img" aria-label="Documentation graph" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="legend" id="legend">
+        <span><i class="route"></i>routes to</span>
+        <span><i class="own"></i>owns topic</span>
+        <span><i class="ref"></i>references</span>
+        <span><i class="dep"></i>depends on</span>
+        <span><b>!</b>error or warning</span>
+        <span><b class="info">i</b>information</span>
+      </div>
+    </div>
+    <section class="panel problems" aria-label="Problems">
+      <div class="panel-head">Problems <span class="count" id="problems-count">0</span></div>
+      <div class="problem-list" id="problems"></div>
+    </section>
+  </section>
+  <aside class="panel details" aria-label="Details">
+    <div class="panel-head">Details</div>
+    <div class="detail-body" id="details"></div>
+  </aside>
+</main>
+<footer class="statusbar" id="statusbar" role="status"></footer>
+<noscript><p class="tree-empty">This offline graph needs JavaScript enabled in the local browser.</p></noscript>
+<script type="application/json" id="documentation-graph-data">__CONTEXT_CARTOGRAPHER_PAYLOAD__</script>
+<script>
+(function () {
+  'use strict';
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+  var REL_ORDER = ['routes_to', 'owns_topic', 'references', 'depends_on'];
+  var REL_LABEL = {
+    routes_to: 'routes to',
+    owns_topic: 'owns topic',
+    references: 'references',
+    depends_on: 'depends on'
+  };
+  var SOURCE_PREVIEW_LINES = 200;
+  var SOURCE_PREVIEW_CAP = 1200;
+
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  function make(tag, cls, value) {
+    var node = document.createElement(tag);
+    if (cls) {
+      node.className = cls;
+    }
+    if (value !== undefined && value !== null) {
+      node.textContent = String(value);
+    }
+    return node;
+  }
+
+  function svgMake(tag, attrs) {
+    var node = document.createElementNS(SVG_NS, tag);
+    if (attrs) {
+      Object.keys(attrs).forEach(function (key) {
+        node.setAttribute(key, String(attrs[key]));
+      });
+    }
+    return node;
+  }
+
+  function clamp(value, low, high) {
+    if (value < low) { return low; }
+    if (value > high) { return high; }
+    return value;
+  }
+
+  function asText(value, fallback) {
+    if (value === undefined || value === null) {
+      return fallback === undefined ? '' : fallback;
+    }
+    return String(value);
+  }
+
+  function shorten(value, max) {
+    var s = asText(value);
+    if (s.length <= max) {
+      return s;
+    }
+    return s.slice(0, Math.max(0, max - 3)) + '...';
+  }
+
+  function splitAddress(raw) {
+    var s = asText(raw).trim();
+    var markdown = /\[[^\]]*\]\(([^)]+)\)/.exec(s);
+    if (markdown) {
+      s = markdown[1].trim();
+    }
+    var hash = s.indexOf('#');
+    var path = hash === -1 ? s : s.slice(0, hash);
+    var anchor = hash === -1 ? '' : s.slice(hash + 1);
+    path = path.replace(/\\/g, '/').replace(/^\.\//, '');
+    return { path: path, anchor: anchor };
+  }
+
+  function iconSvg(parts, size) {
+    var svg = svgMake('svg', {
+      viewBox: '0 0 24 24',
+      width: size || 14,
+      height: size || 14,
+      fill: 'none',
+      stroke: 'currentColor',
+      'stroke-width': '2',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'aria-hidden': 'true'
+    });
+    parts.forEach(function (part) {
+      svg.appendChild(svgMake(part[0], part[1]));
+    });
+    return svg;
+  }
+
+  var ICON_COPY = [
+    ['rect', { width: '14', height: '14', x: '8', y: '8', rx: '2', ry: '2' }],
+    ['path', { d: 'M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2' }]
+  ];
+  var ICON_OPEN = [
+    ['path', { d: 'M15 3h6v6' }],
+    ['path', { d: 'M10 14 21 3' }],
+    ['path', { d: 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' }]
+  ];
+
+  function copyText(value, button) {
+    var done = function (ok) {
+      var previous = button.getAttribute('data-label') || '';
+      button.textContent = ok ? 'Copied' : 'Copy failed';
+      window.setTimeout(function () { button.textContent = previous; }, 1500);
+    };
+    var legacy = function () {
+      try {
+        var area = make('textarea');
+        area.value = value;
+        area.setAttribute('readonly', 'readonly');
+        area.style.position = 'fixed';
+        area.style.left = '-1000px';
+        document.body.appendChild(area);
+        area.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(area);
+        return ok;
+      } catch (err) {
+        return false;
+      }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(function () { done(true); }, function () { done(legacy()); });
+    } else {
+      done(legacy());
+    }
+  }
+
+  function copyButton(label, value) {
+    var button = make('button', 'chip');
+    button.type = 'button';
+    button.setAttribute('data-label', label);
+    button.appendChild(iconSvg(ICON_COPY));
+    button.appendChild(make('span', null, label));
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      copyText(value, button);
+    });
+    return button;
+  }
+
+  function safeRelativePath(path) {
+    var value = asText(path);
+    if (!value || value.charAt(0) === '/' || value.indexOf('\\') !== -1) {
+      return false;
+    }
+    if (/^[A-Za-z][A-Za-z0-9+.\-]*:/.test(value)) {
+      // A drive letter or a URL scheme, not a project-relative path.
+      return false;
+    }
+    var parts = value.split('/');
+    for (var index = 0; index < parts.length; index += 1) {
+      if (parts[index] === '' || parts[index] === '..') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // The artifact is documented to live at .context-cartographer/documentation-graph.html,
+  // so a project-root-relative document needs one level up. This optional link
+  // never replaces the built-in, always-offline source preview.
+  function documentHref(path, anchor) {
+    var parts = path.split('/').map(encodeURIComponent).join('/');
+    return '../' + parts + (anchor ? '#' + encodeURIComponent(anchor) : '');
+  }
+
+  function shellQuote(value) {
+    // POSIX single quotes make every character literal, including spaces, $,
+    // backticks and newlines. An embedded single quote is written as '\'':
+    // close the literal, add an escaped quote, and reopen it.
+    return "'" + asText(value).replace(/'/g, "'\\''") + "'";
+  }
+
+  function shellPath(path) {
+    var value = asText(path);
+    // './' keeps a leading dash from being read as an option by sed or cat.
+    if (value.charAt(0) !== '/' && value.indexOf('./') !== 0) {
+      value = './' + value;
+    }
+    return shellQuote(value);
+  }
+
+  function lineNumber(value, fallback) {
+    var parsed = parseInt(asText(value), 10);
+    if (!isFinite(parsed)) {
+      return fallback;
+    }
+    return parsed;
+  }
+
+  function readCommand(path, start, end) {
+    if (start && end) {
+      var from = Math.max(1, lineNumber(start, 1));
+      var to = Math.max(from, lineNumber(end, from));
+      return "sed -n '" + from + ',' + to + "p' " + shellPath(path);
+    }
+    return 'cat ' + shellPath(path);
+  }
+
+  var state = {
+    model: null,
+    positions: {},
+    selection: { kind: 'none' },
+    focusKey: '',
+    query: '',
+    area: '',
+    types: { routes_to: true, owns_topic: true, references: true, depends_on: true },
+    problemsOnly: false,
+    view: { scale: 1, x: 0, y: 0 }
+  };
+
+  var viewport = null;
+  var edgeLayer = null;
+  var nodeLayer = null;
+  var nodeElements = {};
+  var edgeElements = [];
+  var treeItems = {};
+
+  function loadPayload() {
+    var holder = byId('documentation-graph-data');
+    if (!holder) {
+      return { ok: false, error: 'Graph data element is missing.' };
+    }
+    try {
+      return { ok: true, data: JSON.parse(holder.textContent) };
+    } catch (err) {
+      return { ok: false, error: 'Graph data is not valid JSON.' };
+    }
+  }
+
+  function buildModel(data) {
+    var index = (data && typeof data.index === 'object' && data.index) || {};
+    var report = (data && typeof data.report === 'object' && data.report) || {};
+    var scope = (index.scope && typeof index.scope === 'object') ? index.scope : {};
+    var documents = Array.isArray(index.documents) ? index.documents : [];
+    var topics = Array.isArray(index.topics) ? index.topics : [];
+    var dependencies = Array.isArray(index.dependencies) ? index.dependencies : [];
+
+    var model = {
+      index: index,
+      report: report,
+      documents: [],
+      topics: [],
+      docsByPath: {},
+      topicsById: {},
+      nodes: {},
+      edges: [],
+      outgoing: {},
+      incoming: {},
+      problems: [],
+      roots: Array.isArray(scope.roots) ? scope.roots.map(function (item) { return asText(item); }) : [],
+      rendererVersion: asText(data && data.renderer_version),
+      rendererFingerprint: asText(data && data.renderer_fingerprint)
+    };
+
+    documents.forEach(function (doc) {
+      if (!doc || typeof doc !== 'object') {
+        return;
+      }
+      var path = asText(doc.path);
+      if (!path) {
+        return;
+      }
+      var headings = Array.isArray(doc.headings) ? doc.headings.filter(function (item) {
+        return item && typeof item === 'object';
+      }) : [];
+      var links = Array.isArray(doc.links) ? doc.links.filter(function (item) {
+        return item && typeof item === 'object';
+      }) : [];
+      var entry = {
+        path: path,
+        title: asText(doc.title) || path.split('/').pop(),
+        area: asText(doc.area),
+        fingerprint: asText(doc.fingerprint),
+        text: typeof doc.text === 'string' ? doc.text : '',
+        preambleAnchors: Array.isArray(doc.preamble_anchors) ? doc.preamble_anchors.slice() : [],
+        truncated: doc.truncated === true,
+        parseComplete: doc.parse_complete !== false,
+        sizeBytes: Number(doc.size_bytes) || 0,
+        headings: headings,
+        links: links,
+        nodeId: 'doc:' + path
+      };
+      model.documents.push(entry);
+      model.docsByPath[path] = entry;
+      model.nodes[entry.nodeId] = {
+        id: entry.nodeId,
+        kind: 'doc',
+        label: entry.title,
+        sub: entry.path,
+        doc: entry,
+        problemCount: 0,
+        search: [entry.path, entry.title].concat(headings.map(function (h) { return asText(h.text); })).join(' ').toLowerCase()
+      };
+    });
+
+    topics.forEach(function (topic) {
+      var id = asText(topic && topic.id);
+      if (!id) {
+        return;
+      }
+      var owner = splitAddress(topic && topic.owner);
+      var existing = model.topicsById[id];
+      if (existing) {
+        // A duplicate Topic ID is an error the checker reports; the graph keeps
+        // one node and counts the extra declarations instead of forking a node.
+        existing.duplicates += 1;
+        return;
+      }
+      var ownerPath = asText(topic && topic.owner_target) || owner.path;
+      var ownerAnchor = asText(topic && topic.owner_anchor) || owner.anchor;
+      var ownerDoc = model.docsByPath[ownerPath];
+      var entry = {
+        id: id,
+        purpose: asText(topic && topic.purpose),
+        owner: asText(topic && topic.owner),
+        ownerPath: ownerPath,
+        ownerAnchor: ownerAnchor,
+        readWhen: asText(topic && topic.read_when),
+        area: ownerDoc ? ownerDoc.area : '',
+        duplicates: 1,
+        nodeId: 'topic:' + id
+      };
+      model.topics.push(entry);
+      model.topicsById[id] = entry;
+      model.nodes[entry.nodeId] = {
+        id: entry.nodeId,
+        kind: 'topic',
+        label: entry.id,
+        sub: entry.purpose,
+        topic: entry,
+        problemCount: 0,
+        search: [entry.id, entry.purpose, entry.readWhen].join(' ').toLowerCase()
+      };
+    });
+
+    var seenEdges = {};
+    function addEdge(from, to, type, line) {
+      if (!model.nodes[from] || !model.nodes[to] || from === to) {
+        return;
+      }
+      var key = type + '|' + from + '|' + to;
+      if (seenEdges[key]) {
+        if (line) {
+          seenEdges[key].lines.push(line);
+        }
+        return;
+      }
+      var edge = { from: from, to: to, type: type, lines: line ? [line] : [] };
+      seenEdges[key] = edge;
+      model.edges.push(edge);
+    }
+
+    var rootPaths = {};
+    model.roots.forEach(function (raw) { rootPaths[splitAddress(raw).path] = true; });
+
+    function linkCarriesDocumentRelation(link) {
+      if (!link || link.resolved === false || link.can_own === false) {
+        return false;
+      }
+      return link.kind === undefined || link.kind === 'link' || link.kind === 'document';
+    }
+
+    model.documents.forEach(function (doc) {
+      var isRoot = Object.prototype.hasOwnProperty.call(rootPaths, doc.path);
+      doc.links.forEach(function (link) {
+        // Only a resolved Markdown link to another in-scope document can
+        // carry a graph relation. Images and external resources stay out.
+        if (!linkCarriesDocumentRelation(link)) {
+          return;
+        }
+        var target = splitAddress(link.target).path || splitAddress(link.raw).path;
+        if (!target || !model.docsByPath[target]) {
+          return;
+        }
+        addEdge(doc.nodeId, 'doc:' + target, isRoot ? 'routes_to' : 'references', link.line);
+      });
+    });
+
+    model.topics.forEach(function (topic) {
+      if (model.docsByPath[topic.ownerPath]) {
+        addEdge('doc:' + topic.ownerPath, topic.nodeId, 'owns_topic', null);
+      }
+    });
+
+    dependencies.forEach(function (dependency) {
+      if (!dependency || typeof dependency !== 'object') {
+        return;
+      }
+      var from = 'topic:' + asText(dependency.topic);
+      if (!model.nodes[from]) {
+        return;
+      }
+      var list = Array.isArray(dependency.depends_on) ? dependency.depends_on : [];
+      list.forEach(function (target) {
+        addEdge(from, 'topic:' + asText(target), 'depends_on', null);
+      });
+    });
+
+    function lookupNode(file, target, section) {
+      if (file && model.docsByPath[file]) {
+        return 'doc:' + file;
+      }
+      var targetPath = splitAddress(target).path;
+      if (targetPath && model.docsByPath[targetPath]) {
+        return 'doc:' + targetPath;
+      }
+      var rawTarget = asText(target);
+      if (rawTarget && model.topicsById[rawTarget]) {
+        return 'topic:' + rawTarget;
+      }
+      if (targetPath && model.topicsById[targetPath]) {
+        return 'topic:' + targetPath;
+      }
+      var rawSection = asText(section);
+      if (rawSection && model.topicsById[rawSection]) {
+        return 'topic:' + rawSection;
+      }
+      return '';
+    }
+
+    var seenProblems = {};
+    function addProblem(level, item) {
+      if (!item || typeof item !== 'object') {
+        return;
+      }
+      if (level !== 'error' && level !== 'warning' && level !== 'info') {
+        level = 'info';
+      }
+      var problem = {
+        level: level,
+        code: asText(item.code, 'unspecified'),
+        message: asText(item.message) || asText(item.code, 'No message'),
+        file: asText(item.file),
+        line: Number(item.line) || 0,
+        section: asText(item.section),
+        target: asText(item.target)
+      };
+      var key = [problem.level, problem.code, problem.file, problem.line, problem.section, problem.target, problem.message].join('|');
+      if (seenProblems[key]) {
+        return;
+      }
+      seenProblems[key] = true;
+      problem.nodeId = lookupNode(problem.file, problem.target, problem.section);
+      model.problems.push(problem);
+      if (problem.nodeId && model.nodes[problem.nodeId]) {
+        model.nodes[problem.nodeId].problemCount += 1;
+      }
+    }
+
+    [['error', report.errors], ['warning', report.warnings], ['info', report.info]].forEach(function (pair) {
+      (Array.isArray(pair[1]) ? pair[1] : []).forEach(function (item) {
+        addProblem(pair[0], item);
+      });
+    });
+    // The index carries its own parse and address diagnostics with finished
+    // severities. Show them next to the check report and collapse exact repeats.
+    (Array.isArray(index.format_issues) ? index.format_issues : []).forEach(function (issue) {
+      addProblem(asText(issue && issue.severity, 'info'), issue);
+    });
+
+    model.edges.forEach(function (edge) {
+      (model.outgoing[edge.from] = model.outgoing[edge.from] || []).push(edge);
+      (model.incoming[edge.to] = model.incoming[edge.to] || []).push(edge);
+    });
+
+    return model;
+  }
+
+  function computeLayout(model) {
+    var positions = {};
+    var docW = 208;
+    var docH = 60;
+    var gapX = 28;
+    var gapY = 24;
+    var padX = 56;
+    var padY = 64;
+    var docs = model.documents.slice().sort(function (a, b) {
+      if (a.area !== b.area) { return a.area < b.area ? -1 : 1; }
+      if (a.path !== b.path) { return a.path < b.path ? -1 : 1; }
+      return 0;
+    });
+    var docCols = Math.max(1, Math.ceil(Math.sqrt(Math.max(docs.length, 1) * 1.8)));
+    var bottom = padY;
+    docs.forEach(function (doc, position) {
+      var col = position % docCols;
+      var row = Math.floor(position / docCols);
+      var x = padX + col * (docW + gapX);
+      var y = padY + row * (docH + gapY);
+      positions[doc.nodeId] = { x: x, y: y, w: docW, h: docH };
+      bottom = Math.max(bottom, y + docH);
+    });
+
+    var topicW = 184;
+    var topicH = 50;
+    var tgapX = 24;
+    var tgapY = 20;
+    var bandTop = (docs.length ? bottom : padY) + 96;
+    var topics = model.topics.slice().sort(function (a, b) {
+      if (a.id !== b.id) { return a.id < b.id ? -1 : 1; }
+      return 0;
+    });
+    var topicCols = Math.max(1, Math.ceil(Math.sqrt(Math.max(topics.length, 1) * 1.8)));
+    topics.forEach(function (topic, position) {
+      var col = position % topicCols;
+      var row = Math.floor(position / topicCols);
+      positions[topic.nodeId] = {
+        x: padX + col * (topicW + tgapX),
+        y: bandTop + row * (topicH + tgapY),
+        w: topicW,
+        h: topicH
+      };
+    });
+    return positions;
+  }
+
+  function edgePath(a, b) {
+    var ax = a.x + a.w / 2;
+    var ay = a.y + a.h / 2;
+    var bx = b.x + b.w / 2;
+    var by = b.y + b.h / 2;
+    var dx = bx - ax;
+    var dy = by - ay;
+    var length = Math.sqrt(dx * dx + dy * dy) || 1;
+    var bend = 22;
+    var mx = (ax + bx) / 2 - dy / length * bend;
+    var my = (ay + by) / 2 + dx / length * bend;
+    return 'M' + ax + ' ' + ay + ' Q' + mx + ' ' + my + ' ' + bx + ' ' + by;
+  }
+
+  function nodeVisible(node) {
+    if (state.area) {
+      var area = node.kind === 'doc' ? node.doc.area : node.topic.area;
+      if (area !== state.area) {
+        return false;
+      }
+    }
+    if (state.problemsOnly && node.problemCount === 0) {
+      return false;
+    }
+    return true;
+  }
+
+  function nodeMatches(node) {
+    if (!state.query) {
+      return true;
+    }
+    return node.search.indexOf(state.query) !== -1;
+  }
+
+  function renderGraph() {
+    var model = state.model;
+    while (edgeLayer.firstChild) { edgeLayer.removeChild(edgeLayer.firstChild); }
+    while (nodeLayer.firstChild) { nodeLayer.removeChild(nodeLayer.firstChild); }
+    nodeElements = {};
+    edgeElements = [];
+
+    model.edges.forEach(function (edge, index) {
+      var from = state.positions[edge.from];
+      var to = state.positions[edge.to];
+      if (!from || !to) {
+        return;
+      }
+      var path = svgMake('path', {
+        d: edgePath(from, to),
+        'class': 'edge ' + edge.type,
+        'data-edge-index': index
+      });
+      var title = svgMake('title');
+      title.textContent = REL_LABEL[edge.type] + ': ' + model.nodes[edge.from].label + ' -> ' + model.nodes[edge.to].label;
+      path.appendChild(title);
+      edgeLayer.appendChild(path);
+      edgeElements.push({ edge: edge, element: path });
+    });
+
+    model.documents.forEach(function (doc) {
+      nodeElements[doc.nodeId] = svgNode(model.nodes[doc.nodeId]);
+    });
+    model.topics.forEach(function (topic) {
+      nodeElements[topic.nodeId] = svgNode(model.nodes[topic.nodeId]);
+    });
+
+    if (!model.documents.length && !model.topics.length) {
+      var empty = svgMake('text', { x: 40, y: 80, 'class': 'empty-note' });
+      empty.textContent = 'No documents or topics in scope.';
+      nodeLayer.appendChild(empty);
+    }
+
+    applyGraphFilters();
+    applySelection();
+  }
+
+  function svgNode(node) {
+    var place = state.positions[node.id];
+    var group = svgMake('g', {
+      'class': 'node ' + node.kind,
+      'data-node-id': node.id,
+      tabindex: '0',
+      role: 'button'
+    });
+    group.appendChild(svgMake('rect', {
+      'class': 'body',
+      x: place.x,
+      y: place.y,
+      width: place.w,
+      height: place.h,
+      rx: node.kind === 'topic' ? 12 : 6
+    }));
+
+    var label = svgMake('text', { 'class': 'label', x: place.x + 10, y: place.y + 24 });
+    label.textContent = shorten(node.kind === 'doc' ? node.doc.title : node.label, node.kind === 'doc' ? 26 : 24);
+    group.appendChild(label);
+
+    var sub = svgMake('text', { 'class': 'sub', x: place.x + 10, y: place.y + 42 });
+    sub.textContent = shorten(node.kind === 'doc' ? node.doc.path : node.sub, node.kind === 'doc' ? 32 : 28);
+    group.appendChild(sub);
+
+    var lines = [];
+    if (node.kind === 'doc') {
+      lines.push('path: ' + node.doc.path);
+      lines.push('title: ' + node.doc.title);
+      if (node.doc.area) { lines.push('area: ' + node.doc.area); }
+      lines.push('sections: ' + node.doc.headings.length);
+    } else {
+      lines.push('topic: ' + node.topic.id);
+      if (node.topic.purpose) { lines.push('purpose: ' + node.topic.purpose); }
+      if (node.topic.owner) { lines.push('owner: ' + node.topic.owner); }
+    }
+    if (node.problemCount) {
+      lines.push('problems: ' + node.problemCount);
+    }
+    var title = svgMake('title');
+    title.textContent = lines.join('\n');
+    group.appendChild(title);
+
+    if (node.problemCount) {
+      var badge = svgMake('g', { 'class': 'badge' + (hasError(node.id) ? '' : ' info') });
+      badge.appendChild(svgMake('circle', { cx: place.x + place.w - 14, cy: place.y + 14, r: 9 }));
+      var mark = svgMake('text', { x: place.x + place.w - 14, y: place.y + 18, 'text-anchor': 'middle' });
+      mark.textContent = hasError(node.id) ? '!' : 'i';
+      badge.appendChild(mark);
+      group.appendChild(badge);
+    }
+
+    group.addEventListener('click', function (event) {
+      event.stopPropagation();
+      selectNode(node.id);
+    });
+    group.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+        event.preventDefault();
+        selectNode(node.id);
+      }
+    });
+    nodeLayer.appendChild(group);
+    return group;
+  }
+
+  function hasError(nodeId) {
+    return state.model.problems.some(function (problem) {
+      return problem.level === 'error' && problem.nodeId === nodeId;
+    });
+  }
+
+  function applyGraphFilters() {
+    var model = state.model;
+    Object.keys(nodeElements).forEach(function (id) {
+      var node = model.nodes[id];
+      var element = nodeElements[id];
+      var visible = nodeVisible(node);
+      element.classList.toggle('hidden', !visible);
+      element.classList.toggle('dim', visible && !nodeMatches(node));
+    });
+    edgeElements.forEach(function (entry) {
+      var visible = state.types[entry.edge.type] &&
+        !nodeElements[entry.edge.from].classList.contains('hidden') &&
+        !nodeElements[entry.edge.to].classList.contains('hidden');
+      entry.element.classList.toggle('hidden', !visible);
+    });
+  }
+
+  function applySelection() {
+    var selection = state.selection;
+    var activeId = selection.nodeId || '';
+    Object.keys(nodeElements).forEach(function (id) {
+      nodeElements[id].classList.toggle('selected', id === activeId);
+    });
+    var related = {};
+    edgeElements.forEach(function (entry) {
+      var touches = activeId !== '' && (entry.edge.from === activeId || entry.edge.to === activeId);
+      entry.element.classList.toggle('related', touches);
+      if (touches) {
+        related[entry.edge.from] = true;
+        related[entry.edge.to] = true;
+      }
+    });
+    Object.keys(nodeElements).forEach(function (id) {
+      nodeElements[id].classList.toggle('related', id !== activeId && related[id] === true);
+    });
+  }
+
+  function applyView() {
+    viewport.setAttribute('transform', 'translate(' + state.view.x + ' ' + state.view.y + ') scale(' + state.view.scale + ')');
+  }
+
+  function svgSize() {
+    var rect = svgRoot.getBoundingClientRect();
+    return {
+      width: Math.max(Math.round(rect.width), 320),
+      height: Math.max(Math.round(rect.height), 240)
+    };
+  }
+
+  function fitView() {
+    var size = svgSize();
+    svgRoot.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    var box = null;
+    try {
+      box = nodeLayer.getBBox();
+    } catch (err) {
+      box = null;
+    }
+    if (!box || !box.width || !box.height) {
+      state.view = { scale: 1, x: 0, y: 0 };
+      applyView();
+      return;
+    }
+    var pad = 40;
+    var scale = clamp(Math.min((size.width - pad * 2) / box.width, (size.height - pad * 2) / box.height), 0.05, 2.5);
+    state.view.scale = scale;
+    state.view.x = (size.width - box.width * scale) / 2 - box.x * scale;
+    state.view.y = (size.height - box.height * scale) / 2 - box.y * scale;
+    applyView();
+  }
+
+  function centerOn(nodeId) {
+    var place = state.positions[nodeId];
+    if (!place) {
+      return;
+    }
+    var size = svgSize();
+    state.view.x = size.width / 2 - (place.x + place.w / 2) * state.view.scale;
+    state.view.y = size.height / 2 - (place.y + place.h / 2) * state.view.scale;
+    applyView();
+  }
+
+  function zoomBy(factor) {
+    var size = svgSize();
+    var point = { x: size.width / 2, y: size.height / 2 };
+    var scale = clamp(state.view.scale * factor, 0.05, 4);
+    var ratio = scale / state.view.scale;
+    state.view.x = point.x - ratio * (point.x - state.view.x);
+    state.view.y = point.y - ratio * (point.y - state.view.y);
+    state.view.scale = scale;
+    applyView();
+  }
+
+  function buildTree(model) {
+    var root = { key: 'root', level: 0, children: [], search: '' };
+    function item(key, label, level, options) {
+      var entry = {
+        key: key,
+        label: label,
+        level: level,
+        children: [],
+        expandable: Boolean(options && options.expandable),
+        open: Boolean(options && options.open),
+        kind: (options && options.kind) || 'branch',
+        nodeId: (options && options.nodeId) || '',
+        heading: (options && options.heading) || null,
+        doc: (options && options.doc) || null,
+        search: (options && options.search ? options.search : label).toLowerCase()
+      };
+      treeItems[key] = entry;
+      if (options && options.parent) {
+        entry.parentKey = options.parent.key;
+      }
+      return entry;
+    }
+
+    var docsBranch = item('branch-docs', 'Documents (' + model.documents.length + ')', 1, {
+      expandable: true,
+      open: true,
+      parent: root
+    });
+    root.children.push(docsBranch);
+
+    var areas = {};
+    model.documents.forEach(function (doc) {
+      var key = doc.area || '(no area)';
+      (areas[key] = areas[key] || []).push(doc);
+    });
+    var areaNames = Object.keys(areas).sort();
+    var useAreas = areaNames.length > 1;
+
+    function addDocuments(container, docs, level) {
+      docs.slice().sort(function (a, b) { return a.path < b.path ? -1 : (a.path > b.path ? 1 : 0); }).forEach(function (doc) {
+        var node = model.nodes[doc.nodeId];
+        var docItem = item('item-doc:' + doc.path, doc.path, level, {
+          kind: 'doc',
+          nodeId: doc.nodeId,
+          doc: doc,
+          expandable: doc.headings.length > 0,
+          open: false,
+          parent: container,
+          search: node.search
+        });
+        if (doc.problemCountText) {
+          docItem.meta = doc.problemCountText;
+        }
+        if (node.problemCount) {
+          docItem.badge = hasError(doc.nodeId) ? '!' : 'i';
+        }
+        doc.headings.forEach(function (heading, position) {
+          var anchor = asText(heading.anchor);
+          var headingItem = item('item-section:' + doc.path + '#' + anchor + ':' + position, asText(heading.text) || anchor, level + 1, {
+            kind: 'section',
+            nodeId: doc.nodeId,
+            doc: doc,
+            heading: heading,
+            parent: docItem,
+            search: asText(heading.text) + ' ' + anchor + ' ' + doc.path
+          });
+          docItem.children.push(headingItem);
+        });
+        container.children.push(docItem);
+      });
+    }
+
+    if (useAreas) {
+      areaNames.forEach(function (areaName) {
+        var group = item('item-area:' + areaName, areaName, 2, {
+          expandable: true,
+          open: true,
+          parent: docsBranch,
+          search: areaName
+        });
+        addDocuments(group, areas[areaName], 3);
+        docsBranch.children.push(group);
+      });
+    } else {
+      addDocuments(docsBranch, model.documents, 2);
+    }
+
+    var topicsBranch = item('branch-topics', 'Topics (' + model.topics.length + ')', 1, {
+      expandable: true,
+      open: true,
+      parent: root
+    });
+    model.topics.slice().sort(function (a, b) { return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0); }).forEach(function (topic) {
+      var node = model.nodes[topic.nodeId];
+      var topicItem = item('item-topic:' + topic.id, topic.id, 2, {
+        kind: 'topic',
+        nodeId: topic.nodeId,
+        parent: topicsBranch,
+        search: node.search
+      });
+      if (node.problemCount) {
+        topicItem.badge = hasError(topic.nodeId) ? '!' : 'i';
+      }
+      topicsBranch.children.push(topicItem);
+    });
+    root.children.push(topicsBranch);
+
+    var dependencies = Array.isArray(model.index.dependencies) ? model.index.dependencies : [];
+    var dependencyBranch = item('branch-dependencies', 'Dependencies (' + dependencies.length + ')', 1, {
+      expandable: true,
+      open: false,
+      parent: root
+    });
+    dependencies.forEach(function (dependency, position) {
+      var source = asText(dependency && dependency.topic);
+      var targets = Array.isArray(dependency && dependency.depends_on) ? dependency.depends_on : [];
+      var label = source + ' depends on ' + (targets.length ? targets.map(function (t) { return asText(t); }).join(', ') : '(nothing listed)');
+      dependencyBranch.children.push(item('item-dependency:' + position, label, 2, {
+        kind: 'dependency',
+        nodeId: model.topicsById[source] ? 'topic:' + source : '',
+        parent: dependencyBranch,
+        search: label
+      }));
+    });
+    root.children.push(dependencyBranch);
+
+    return root;
+  }
+
+  function itemFilterOk(item, parentOk) {
+    if (!parentOk) {
+      return false;
+    }
+    if (item.kind === 'doc' || item.kind === 'section' || item.kind === 'topic' || item.kind === 'dependency') {
+      if (!item.nodeId) {
+        return false;
+      }
+      var node = state.model.nodes[item.nodeId];
+      if (!node) {
+        return false;
+      }
+      return nodeVisible(node);
+    }
+    return true;
+  }
+
+  function visibleTreeItems() {
+    var query = state.query;
+    var collected = [];
+    function visit(item, parentOk) {
+      var ok = itemFilterOk(item, parentOk);
+      var selfMatch = ok && (query === '' || item.search.indexOf(query) !== -1);
+      var childItems = [];
+      if (item.children.length && (item.open || query !== '')) {
+        item.children.forEach(function (child) {
+          childItems = childItems.concat(visit(child, ok));
+        });
+      }
+      if (!selfMatch && !childItems.length) {
+        return [];
+      }
+      return [item].concat(childItems);
+    }
+    state.tree.children.forEach(function (branch) {
+      collected = collected.concat(visit(branch, true));
+    });
+    return collected;
+  }
+
+  function renderTree() {
+    var container = byId('tree');
+    container.textContent = '';
+    var items = visibleTreeItems();
+    if (!items.length) {
+      container.appendChild(make('p', 'tree-empty', 'Nothing matches the current search and filters.'));
+      byId('outline-count').textContent = '0';
+      return;
+    }
+    byId('outline-count').textContent = String(items.length);
+    var focusKey = '';
+    items.forEach(function (item) {
+      var row = make('div', 'trow');
+      row.setAttribute('role', 'treeitem');
+      row.setAttribute('tabindex', '-1');
+      row.setAttribute('aria-level', String(item.level));
+      row.style.setProperty('--depth', String(item.level));
+      row.dataset.key = item.key;
+      if (item.expandable) {
+        row.setAttribute('aria-expanded', item.open ? 'true' : 'false');
+      }
+      var isSelected = state.selection.nodeId === item.nodeId &&
+        (state.selection.heading ? state.selection.heading === item.heading : item.kind !== 'section');
+      row.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      if (item.kind === 'section' && item.heading) {
+        row.setAttribute('aria-label', asText(item.heading.text) + ' - lines ' + asText(item.heading.line_start) + '-' + asText(item.heading.line_end));
+      }
+      row.appendChild(make('span', 'chev'));
+      row.appendChild(make('span', 'tlabel', item.label));
+      if (item.meta) {
+        row.appendChild(make('span', 'tmeta', item.meta));
+      }
+      if (item.badge) {
+        row.appendChild(make('span', 'tbadge', item.badge));
+      }
+      row.addEventListener('click', function (event) {
+        if (event.target && event.target.classList.contains('chev') && item.expandable) {
+          event.stopPropagation();
+          toggleItem(item);
+          return;
+        }
+        activateItem(item);
+      });
+      container.appendChild(row);
+      if (!focusKey && item.key === state.focusKey) {
+        focusKey = item.key;
+      }
+    });
+    var rows = container.querySelectorAll('.trow');
+    if (!rows.length) {
+      return;
+    }
+    var target = null;
+    for (var index = 0; index < rows.length; index += 1) {
+      if (rows[index].dataset.key === (focusKey || state.focusKey)) {
+        target = rows[index];
+        break;
+      }
+    }
+    (target || rows[0]).setAttribute('tabindex', '0');
+  }
+
+  function toggleItem(item) {
+    item.open = !item.open;
+    state.focusKey = item.key;
+    renderTree();
+    focusKey(state.focusKey);
+  }
+
+  function focusKey(key) {
+    var rows = byId('tree').querySelectorAll('.trow');
+    for (var index = 0; index < rows.length; index += 1) {
+      rows[index].setAttribute('tabindex', rows[index].dataset.key === key ? '0' : '-1');
+      if (rows[index].dataset.key === key) {
+        rows[index].focus();
+      }
+    }
+  }
+
+  function activateItem(item) {
+    state.focusKey = item.key;
+    if (item.kind === 'section' && item.heading) {
+      selectSection(item.doc, item.heading);
+      return;
+    }
+    if (item.nodeId) {
+      selectNode(item.nodeId);
+    }
+  }
+
+  function selectNode(nodeId) {
+    if (!state.model.nodes[nodeId]) {
+      return;
+    }
+    state.selection = { kind: state.model.nodes[nodeId].kind, nodeId: nodeId };
+    applySelection();
+    renderDetails();
+    renderTree();
+  }
+
+  function selectSection(doc, heading) {
+    state.selection = { kind: 'section', nodeId: doc.nodeId, doc: doc, heading: heading };
+    applySelection();
+    renderDetails();
+    renderTree();
+  }
+
+  function relationsFor(nodeId) {
+    var outgoing = (state.model.outgoing[nodeId] || []).slice();
+    var incoming = (state.model.incoming[nodeId] || []).slice();
+    var compare = function (a, b) {
+      if (a.type !== b.type) { return REL_ORDER.indexOf(a.type) - REL_ORDER.indexOf(b.type); }
+      return labelOf(a.from === nodeId ? a.to : a.from).localeCompare(labelOf(b.from === nodeId ? b.to : b.from));
+    };
+    outgoing.sort(compare);
+    incoming.sort(compare);
+    return { outgoing: outgoing, incoming: incoming };
+  }
+
+  function labelOf(nodeId) {
+    var node = state.model.nodes[nodeId];
+    return node ? node.label : nodeId;
+  }
+
+  function relationList(edges, nodeId) {
+    var list = make('ul', 'plain');
+    edges.forEach(function (edge) {
+      var otherId = edge.from === nodeId ? edge.to : edge.from;
+      var other = state.model.nodes[otherId];
+      var li = make('li');
+      li.appendChild(make('span', 'muted', REL_LABEL[edge.type] + ':'));
+      var button = make('button', 'linkish', other ? other.label : otherId);
+      button.type = 'button';
+      button.addEventListener('click', function () { selectNode(otherId); });
+      li.appendChild(button);
+      if (other && other.kind === 'doc' && other.doc.path !== labelOf(otherId)) {
+        li.appendChild(make('span', 'muted', ' ' + other.doc.path));
+      }
+      if (edge.lines.length) {
+        li.appendChild(make('span', 'muted', ' line ' + edge.lines.join(', ')));
+      }
+      list.appendChild(li);
+    });
+    return list;
+  }
+
+  function problemsFor(nodeId) {
+    return state.model.problems.filter(function (problem) {
+      return problem.nodeId === nodeId;
+    });
+  }
+
+  function appendProblems(container, nodeId) {
+    var problems = problemsFor(nodeId);
+    if (!problems.length) {
+      return;
+    }
+    container.appendChild(make('h4', null, 'Problems'));
+    problems.forEach(function (problem) {
+      container.appendChild(problemButton(problem));
+    });
+  }
+
+  function problemButton(problem) {
+    var button = make('button', 'problem ' + problem.level);
+    button.type = 'button';
+    var head = make('div', 'phead');
+    head.textContent = problem.level.charAt(0).toUpperCase() + problem.level.slice(1) + ' - ' + problem.code;
+    button.appendChild(head);
+    var where = [problem.file, problem.line ? 'line ' + problem.line : '', problem.section ? 'section ' + problem.section : ''].filter(Boolean).join(' - ');
+    if (where) {
+      button.appendChild(make('div', 'pmeta', where));
+    }
+    button.appendChild(make('div', 'pmsg', problem.message));
+    button.addEventListener('click', function () { jumpToProblem(problem); });
+    return button;
+  }
+
+  function headingAliases(heading) {
+    // Agreed index schema (documentation_index.py): headings[].aliases is
+    // always a list, in document order, without this heading's own anchor.
+    var raw = heading ? heading.aliases : null;
+    var aliases = [];
+    if (Array.isArray(raw)) {
+      raw.forEach(function (item) {
+        var value = asText(item);
+        if (value) {
+          aliases.push(value);
+        }
+      });
+    }
+    return aliases;
+  }
+
+  function documentLineCount(doc) {
+    if (!doc || typeof doc.text !== 'string' || doc.text === '') {
+      return 1;
+    }
+    return doc.text.split(/\r\n|\r|\n/).length;
+  }
+
+  // An explicit anchor before the first heading belongs to the preamble, not to
+  // any section; documentation_index.py lists those in documents[].preamble_anchors.
+  function preambleHeading(doc, wanted) {
+    var raw = doc ? (doc.preambleAnchors || doc.preamble_anchors) : null;
+    var anchors = Array.isArray(raw) ? raw : [];
+    if (anchors.indexOf(wanted) === -1) {
+      return null;
+    }
+    var headings = Array.isArray(doc.headings) ? doc.headings : [];
+    var firstStart = 0;
+    headings.forEach(function (heading) {
+      var start = lineNumber(heading.line_start, 0);
+      if (start > 0 && (firstStart === 0 || start < firstStart)) {
+        firstStart = start;
+      }
+    });
+    var end = firstStart > 1 ? firstStart - 1 : documentLineCount(doc);
+    return { text: '(preamble)', anchor: wanted, level: 0, line_start: 1, line_end: end, aliases: [] };
+  }
+
+  function headingMatches(heading, wanted) {
+    if (!wanted || !heading) {
+      return false;
+    }
+    if (asText(heading.anchor) === wanted || asText(heading.text) === wanted) {
+      return true;
+    }
+    return headingAliases(heading).indexOf(wanted) !== -1;
+  }
+
+  // Authoritative resolution: exact anchor/alias/heading text from the index,
+  // then the index's own line range. No slug mimicry, no first-similar match.
+  function resolveSection(doc, problem) {
+    var wanted = asText(problem && problem.section);
+    var result = { heading: null, candidates: [], reason: 'not_found' };
+    if (!doc || !wanted) {
+      result.reason = 'no_section_name';
+      return result;
+    }
+    var headings = Array.isArray(doc.headings) ? doc.headings : [];
+    var exact = headings.filter(function (heading) {
+      return headingMatches(heading, wanted);
+    });
+    var preamble = preambleHeading(doc, wanted);
+    if (preamble) {
+      exact = exact.concat([preamble]);
+    }
+    if (exact.length === 1) {
+      result.heading = exact[0];
+      result.reason = 'heading';
+      return result;
+    }
+    if (exact.length > 1) {
+      result.candidates = exact;
+      result.reason = 'ambiguous';
+      return result;
+    }
+    var line = lineNumber(problem && problem.line, 0);
+    if (line > 0) {
+      var byLine = headings.filter(function (heading) {
+        var start = lineNumber(heading.line_start, 0);
+        if (start <= 0) {
+          return false;
+        }
+        var end = lineNumber(heading.line_end, start);
+        return line >= start && line <= end;
+      });
+      if (byLine.length === 1) {
+        result.heading = byLine[0];
+        result.reason = 'line';
+        return result;
+      }
+      if (byLine.length > 1) {
+        result.candidates = byLine;
+        result.reason = 'ambiguous_line';
+        return result;
+      }
+    }
+    return result;
+  }
+
+  function headingLabel(heading) {
+    return asText(heading && heading.text) || asText(heading && heading.anchor) || '(untitled section)';
+  }
+
+  function candidateButton(doc, heading) {
+    var button = make('button', 'linkish');
+    button.type = 'button';
+    var lines = asText(heading.line_start) + '-' + asText(heading.line_end);
+    button.textContent = headingLabel(heading) + ' (#' + asText(heading.anchor) + ', lines ' + lines + ')';
+    button.addEventListener('click', function () { selectSection(doc, heading); });
+    return button;
+  }
+
+  // A missing or ambiguous target is shown as itself. The graph never silently
+  // substitutes a similar-looking section for the one the report named.
+  function appendResolutionNotice(doc, problem, resolution) {
+    var host = byId('details');
+    var panel = make('div', 'banner');
+    panel.appendChild(make('p', null, 'Section "' + asText(problem.section)
+      + '" is not resolved from this build snapshot of ' + doc.path + '.'));
+    if (resolution.candidates.length) {
+      panel.appendChild(make('p', null, resolution.candidates.length
+        + ' headings match this name exactly; pick the one the report meant:'));
+      resolution.candidates.slice(0, 12).forEach(function (heading) {
+        panel.appendChild(candidateButton(doc, heading));
+      });
+    } else {
+      panel.appendChild(make('p', null, 'No heading matches that name or line. The report may '
+        + 'describe an older or renamed heading; rebuild the graph after the document change.'));
+      var headings = Array.isArray(doc.headings) ? doc.headings : [];
+      if (headings.length) {
+        panel.appendChild(make('p', null, 'Headings in this snapshot:'));
+        headings.slice(0, 12).forEach(function (heading) {
+          panel.appendChild(candidateButton(doc, heading));
+        });
+      }
+    }
+    host.appendChild(panel);
+  }
+
+  function jumpToProblem(problem) {
+    var doc = problem.file ? state.model.docsByPath[problem.file] : null;
+    if (doc) {
+      selectNode(doc.nodeId);
+      centerOn(doc.nodeId);
+    } else if (problem.nodeId) {
+      selectNode(problem.nodeId);
+      centerOn(problem.nodeId);
+    }
+    if (!doc || !problem.section) {
+      return;
+    }
+    var resolution = resolveSection(doc, problem);
+    if (resolution.heading) {
+      selectSection(doc, resolution.heading);
+      return;
+    }
+    appendResolutionNotice(doc, problem, resolution);
+  }
+
+  function sourceBlock(doc, startLine, endLine) {
+    var lines = doc.text.split(/\r\n|\r|\n/);
+    var total = lines.length;
+    var from = Math.max(1, startLine || 1);
+    var to = Math.min(total, endLine || (from + SOURCE_PREVIEW_LINES - 1));
+    if (to < from) {
+      to = from;
+    }
+    var truncated = false;
+    if (to - from + 1 > SOURCE_PREVIEW_CAP) {
+      to = from + SOURCE_PREVIEW_CAP - 1;
+      truncated = true;
+    }
+    var numbers = [];
+    for (var index = from; index <= to; index += 1) {
+      numbers.push(index);
+    }
+    var wrap = make('div', 'source');
+    wrap.setAttribute('tabindex', '0');
+    wrap.setAttribute('role', 'region');
+    wrap.setAttribute('aria-label', 'Source of ' + doc.path + ' lines ' + from + ' to ' + to);
+    var gutter = make('pre', 'gutter');
+    gutter.setAttribute('aria-hidden', 'true');
+    gutter.textContent = numbers.join('\n');
+    var code = make('pre', 'code');
+    code.textContent = lines.slice(from - 1, to).join('\n');
+    wrap.appendChild(gutter);
+    wrap.appendChild(code);
+    var notes = [];
+    if (truncated) {
+      notes.push('Showing lines ' + from + '-' + to + ' of ' + total + ' in this snapshot.');
+    } else if (endLine && total > to) {
+      notes.push('Showing lines ' + from + '-' + to + '; the section continues to line ' + endLine + '.');
+    }
+    var fragment = document.createDocumentFragment();
+    fragment.appendChild(wrap);
+    if (notes.length) {
+      fragment.appendChild(make('p', 'note', notes.join(' ')));
+    }
+    return fragment;
+  }
+
+  function addressOf(doc, anchor) {
+    return doc.path + (anchor ? '#' + anchor : '');
+  }
+
+  function appendAddressTools(container, doc, anchor, startLine, endLine) {
+    var tools = make('div', 'toolrow');
+    tools.appendChild(copyButton('Copy path', doc.path));
+    if (anchor) {
+      tools.appendChild(copyButton('Copy anchor', anchor));
+    }
+    tools.appendChild(copyButton('Copy address', addressOf(doc, anchor)));
+    tools.appendChild(copyButton('Copy read command', readCommand(doc.path, startLine, endLine)));
+    if (safeRelativePath(doc.path)) {
+      var link = make('a', 'chip');
+      link.href = documentHref(doc.path, anchor);
+      link.rel = 'noopener noreferrer';
+      link.title = 'Optional shortcut to .context-cartographer/../' + doc.path
+        + '; the built-in preview above always works, opening the original depends on the viewer.';
+      link.appendChild(iconSvg(ICON_OPEN));
+      link.appendChild(make('span', null, 'Open file (optional)'));
+      tools.appendChild(link);
+    }
+    container.appendChild(tools);
+  }
+
+  function renderOverview() {
+    var model = state.model;
+    var report = model.report;
+    var host = byId('details');
+    host.textContent = '';
+    host.appendChild(make('h3', 'detail-title', 'Overview'));
+    var rows = make('dl', 'rows');
+    function row(key, value) {
+      rows.appendChild(make('dt', null, key));
+      rows.appendChild(make('dd', null, value));
+    }
+    row('Status', asText(report.status, 'unknown'));
+    row('Scan', report.scan_complete === false ? 'incomplete' : 'complete');
+    row('Owner coverage', asText(report.owner_coverage, 'unknown'));
+    row('Graph', asText(report.graph_status, 'unknown'));
+    row('Documents', String(model.documents.length));
+    row('Topics', String(model.topics.length));
+    row('Relations', String(model.edges.length));
+    row('Problems', String(model.problems.length));
+    var sourceFingerprint = asText(model.index.source_fingerprint) || asText(report.source_fingerprint);
+    if (sourceFingerprint) {
+      row('Source fingerprint', sourceFingerprint);
+    }
+    if (model.rendererFingerprint) {
+      row('Renderer', 'v' + (model.rendererVersion || '?') + ' ' + model.rendererFingerprint);
+    }
+    host.appendChild(rows);
+    host.appendChild(make('p', 'note', 'The embedded document text is a derived copy captured when this file was built. Edit the Markdown owners, then rebuild.'));
+    if (!model.documents.length) {
+      host.appendChild(make('p', 'note', 'No documents are in scope in this snapshot.'));
+    }
+  }
+
+  function renderDocDetails(node) {
+    var doc = node.doc;
+    var host = byId('details');
+    host.textContent = '';
+    host.appendChild(make('h3', 'detail-title', doc.title || doc.path));
+    host.appendChild(make('div', 'addr', doc.path));
+    var rows = make('dl', 'rows');
+    function row(key, value) {
+      rows.appendChild(make('dt', null, key));
+      rows.appendChild(make('dd', null, value));
+    }
+    row('Area', doc.area || '(none)');
+    row('Sections', String(doc.headings.length));
+    if (doc.fingerprint) {
+      row('Fingerprint', doc.fingerprint);
+    }
+    host.appendChild(rows);
+    appendAddressTools(host, doc, '', 1, SOURCE_PREVIEW_LINES);
+
+    var owned = state.model.topics.filter(function (topic) { return topic.ownerPath === doc.path; });
+    if (owned.length) {
+      host.appendChild(make('h4', null, 'Owned topics'));
+      var list = make('ul', 'plain');
+      owned.forEach(function (topic) {
+        var li = make('li');
+        var button = make('button', 'linkish', topic.id);
+        button.type = 'button';
+        button.addEventListener('click', function () { selectNode(topic.nodeId); });
+        li.appendChild(button);
+        if (topic.readWhen) {
+          li.appendChild(make('span', 'muted', ' ' + topic.readWhen));
+        }
+        list.appendChild(li);
+      });
+      host.appendChild(list);
+    }
+
+    host.appendChild(make('h4', null, 'Sections'));
+    if (!doc.headings.length) {
+      host.appendChild(make('p', 'note', 'No headings were indexed for this document.'));
+    } else {
+      var headings = make('ul', 'plain');
+      doc.headings.forEach(function (heading) {
+        var li = make('li');
+        var button = make('button', 'linkish', asText(heading.text) || asText(heading.anchor));
+        button.type = 'button';
+        button.title = addressOf(doc, asText(heading.anchor));
+        button.addEventListener('click', function () { selectSection(doc, heading); });
+        li.appendChild(button);
+        li.appendChild(make('span', 'muted', ' lines ' + asText(heading.line_start) + '-' + asText(heading.line_end)));
+        headings.appendChild(li);
+      });
+      host.appendChild(headings);
+    }
+
+    appendRelations(host, node.id);
+    appendProblems(host, node.id);
+     host.appendChild(make('h4', null, 'Source preview'));
+    host.appendChild(sourceBlock(doc, 1, SOURCE_PREVIEW_LINES));
+  }
+
+  function renderTopicDetails(node) {
+    var topic = node.topic;
+    var host = byId('details');
+    host.textContent = '';
+    host.appendChild(make('h3', 'detail-title', topic.id));
+    host.appendChild(make('div', 'addr', topic.owner || '(no owner)'));
+    var rows = make('dl', 'rows');
+    function row(key, value) {
+      rows.appendChild(make('dt', null, key));
+      rows.appendChild(make('dd', null, value));
+    }
+    if (topic.purpose) {
+      row('Purpose', topic.purpose);
+    }
+    if (topic.readWhen) {
+      row('Read when', topic.readWhen);
+    }
+    if (topic.area) {
+      row('Area', topic.area);
+    }
+    host.appendChild(rows);
+    var ownerDoc = state.model.docsByPath[topic.ownerPath];
+    if (ownerDoc) {
+      var tools = make('div', 'toolrow');
+      var open = make('button', 'chip');
+      open.type = 'button';
+      open.textContent = 'Owner: ' + ownerDoc.path;
+      open.addEventListener('click', function () { selectNode(ownerDoc.nodeId); });
+      tools.appendChild(open);
+      var ownerProblem = { file: topic.ownerPath, section: topic.ownerAnchor, line: 0 };
+      var ownerResolution = resolveSection(ownerDoc, ownerProblem);
+      if (ownerResolution.heading) {
+        var section = make('button', 'chip');
+        section.type = 'button';
+        section.textContent = 'Section: ' + headingLabel(ownerResolution.heading);
+        section.addEventListener('click', function () {
+          selectSection(ownerDoc, ownerResolution.heading);
+        });
+        tools.appendChild(section);
+      } else if (topic.ownerAnchor) {
+        var unresolved = make('button', 'chip');
+        unresolved.type = 'button';
+        unresolved.textContent = ownerResolution.candidates.length
+          ? 'Owner section is ambiguous (' + ownerResolution.candidates.length + ')'
+          : 'Owner section missing in this snapshot';
+        unresolved.addEventListener('click', function () {
+          selectNode(ownerDoc.nodeId);
+          appendResolutionNotice(ownerDoc, ownerProblem, ownerResolution);
+        });
+        tools.appendChild(unresolved);
+      }
+      host.appendChild(tools);
+    }
+    appendRelations(host, node.id);
+    appendProblems(host, node.id);
+  }
+
+  function renderSectionDetails(selection) {
+    var doc = selection.doc;
+    var heading = selection.heading;
+    var anchor = asText(heading.anchor);
+    var start = Number(heading.line_start) || 1;
+    var end = Number(heading.line_end) || start;
+    var host = byId('details');
+    host.textContent = '';
+
+    var back = make('button', 'chip');
+    back.type = 'button';
+    back.textContent = 'Back to document';
+    back.addEventListener('click', function () { selectNode(doc.nodeId); });
+    host.appendChild(make('div', 'toolrow', null)).appendChild(back);
+
+    host.appendChild(make('h3', 'detail-title', asText(heading.text) || anchor));
+    host.appendChild(make('div', 'addr', addressOf(doc, anchor)));
+
+    var rows = make('dl', 'rows');
+    function row(key, value) {
+      rows.appendChild(make('dt', null, key));
+      rows.appendChild(make('dd', null, value));
+    }
+    row('Heading level', String(Number(heading.level) || 1));
+    row('Lines', start + '-' + end + ' (build snapshot)');
+    row('Area', doc.area || '(none)');
+    var aliases = headingAliases(heading);
+    var topics = state.model.topics.filter(function (topic) {
+      if (topic.ownerPath !== doc.path) {
+        return false;
+      }
+      if (!anchor) {
+        return true;
+      }
+      return topic.ownerAnchor === anchor || aliases.indexOf(topic.ownerAnchor) !== -1;
+    });
+    if (topics.length) {
+      row('Topics', topics.map(function (topic) { return topic.id; }).join(', '));
+    }
+    topics.forEach(function (topic) {
+      if (topic.purpose) {
+        row('Purpose', topic.purpose);
+      }
+      if (topic.readWhen) {
+        row('Read when', topic.readWhen);
+      }
+    });
+    host.appendChild(rows);
+
+    appendAddressTools(host, doc, anchor, start, end);
+    host.appendChild(make('h4', null, 'Source'));
+    host.appendChild(sourceBlock(doc, start, end));
+    appendRelations(host, doc.nodeId);
+    appendProblems(host, doc.nodeId);
+  }
+
+  function appendRelations(host, nodeId) {
+    var relations = relationsFor(nodeId);
+    if (relations.outgoing.length) {
+      host.appendChild(make('h4', null, 'Outgoing'));
+      host.appendChild(relationList(relations.outgoing, nodeId));
+    }
+    if (relations.incoming.length) {
+      host.appendChild(make('h4', null, 'Incoming'));
+      host.appendChild(relationList(relations.incoming, nodeId));
+    }
+    if (!relations.outgoing.length && !relations.incoming.length) {
+      host.appendChild(make('h4', null, 'Relations'));
+      host.appendChild(make('p', 'note', 'No relations recorded for this node.'));
+    }
+  }
+
+  function renderDetails() {
+    var selection = state.selection;
+    if (selection.kind === 'doc' && state.model.nodes[selection.nodeId]) {
+      renderDocDetails(state.model.nodes[selection.nodeId]);
+      return;
+    }
+    if (selection.kind === 'topic' && state.model.nodes[selection.nodeId]) {
+      renderTopicDetails(state.model.nodes[selection.nodeId]);
+      return;
+    }
+    if (selection.kind === 'section' && selection.doc && selection.heading) {
+      renderSectionDetails(selection);
+      return;
+    }
+    renderOverview();
+  }
+
+  function renderProblems() {
+    var host = byId('problems');
+    host.textContent = '';
+    var model = state.model;
+    var groups = [['error', 'Errors'], ['warning', 'Warnings'], ['info', 'Information']];
+    var shown = 0;
+    groups.forEach(function (group) {
+      var items = model.problems.filter(function (problem) { return problem.level === group[0]; });
+      if (!items.length) {
+        return;
+      }
+      host.appendChild(make('div', 'problem-group', group[1] + ' (' + items.length + ')'));
+      items.forEach(function (problem) {
+        host.appendChild(problemButton(problem));
+        shown += 1;
+      });
+    });
+    if (!shown) {
+      host.appendChild(make('p', 'note', 'No problems reported for this snapshot.'));
+    }
+    byId('problems-count').textContent = String(model.problems.length);
+  }
+
+  function renderStatus() {
+    var model = state.model;
+    var report = model.report;
+    var bar = byId('statusbar');
+    bar.textContent = '';
+    function part(label, value, cls) {
+      var span = make('span', cls);
+      span.appendChild(make('strong', null, label + ': '));
+      span.appendChild(document.createTextNode(value));
+      bar.appendChild(span);
+      return span;
+    }
+    part('status', asText(report.status, 'unknown'));
+    part('scan', report.scan_complete === false ? 'incomplete' : 'complete');
+    part('documents', String(model.documents.length));
+    part('relations', String(model.edges.length));
+    part('problems', String(model.problems.length));
+    var fingerprint = asText(model.index.source_fingerprint) || asText(report.source_fingerprint);
+    if (fingerprint) {
+      part('source', fingerprint, 'mono');
+    }
+    if (model.rendererFingerprint) {
+      part('renderer', model.rendererFingerprint + ' (v' + (model.rendererVersion || '?') + ')', 'mono');
+    }
+  }
+
+  function populateAreas() {
+    var select = byId('area-filter');
+    select.textContent = '';
+    var areas = {};
+    state.model.documents.forEach(function (doc) {
+      if (doc.area) {
+        areas[doc.area] = true;
+      }
+    });
+    var names = Object.keys(areas).sort();
+    var all = make('option', null, 'All areas');
+    all.value = '';
+    select.appendChild(all);
+    names.forEach(function (name) {
+      var option = make('option', null, name);
+      option.value = name;
+      select.appendChild(option);
+    });
+    select.disabled = names.length === 0;
+  }
+
+  var svgRoot = null;
+
+  function bindEvents() {
+    byId('search').addEventListener('input', function (event) {
+      state.query = asText(event.target.value).trim().toLowerCase();
+      applyGraphFilters();
+      renderTree();
+    });
+    byId('area-filter').addEventListener('change', function (event) {
+      state.area = asText(event.target.value);
+      applyGraphFilters();
+      renderTree();
+    });
+    REL_ORDER.forEach(function (type) {
+      var box = byId('rel-' + type);
+      if (!box) {
+        return;
+      }
+      box.addEventListener('change', function (event) {
+        state.types[type] = Boolean(event.target.checked);
+        applyGraphFilters();
+      });
+    });
+    byId('problems-only').addEventListener('change', function (event) {
+      state.problemsOnly = Boolean(event.target.checked);
+      applyGraphFilters();
+      renderTree();
+    });
+    byId('zoom-in').addEventListener('click', function () { zoomBy(1.2); });
+    byId('zoom-out').addEventListener('click', function () { zoomBy(1 / 1.2); });
+    byId('zoom-fit').addEventListener('click', fitView);
+    byId('zoom-reset').addEventListener('click', function () {
+      state.view = { scale: 1, x: 0, y: 0 };
+      applyView();
+    });
+
+    var dragging = null;
+    svgRoot.addEventListener('wheel', function (event) {
+      event.preventDefault();
+      var rect = svgRoot.getBoundingClientRect();
+      var size = svgSize();
+      var ratioX = size.width / Math.max(rect.width, 1);
+      var ratioY = size.height / Math.max(rect.height, 1);
+      var point = { x: (event.clientX - rect.left) * ratioX, y: (event.clientY - rect.top) * ratioY };
+      var factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+      var scale = clamp(state.view.scale * factor, 0.05, 4);
+      var ratio = scale / state.view.scale;
+      state.view.x = point.x - ratio * (point.x - state.view.x);
+      state.view.y = point.y - ratio * (point.y - state.view.y);
+      state.view.scale = scale;
+      applyView();
+    }, { passive: false });
+
+    svgRoot.addEventListener('pointerdown', function (event) {
+      if (event.button !== 0) {
+        return;
+      }
+      var target = event.target;
+      if (target && target.closest && target.closest('.node')) {
+        return;
+      }
+      dragging = { x: event.clientX, y: event.clientY, vx: state.view.x, vy: state.view.y };
+      svgRoot.classList.add('dragging');
+      if (svgRoot.setPointerCapture) {
+        svgRoot.setPointerCapture(event.pointerId);
+      }
+      event.preventDefault();
+    });
+    svgRoot.addEventListener('pointermove', function (event) {
+      if (!dragging) {
+        return;
+      }
+      var size = svgSize();
+      var rect = svgRoot.getBoundingClientRect();
+      var scaleX = size.width / Math.max(rect.width, 1);
+      var scaleY = size.height / Math.max(rect.height, 1);
+      state.view.x = dragging.vx + (event.clientX - dragging.x) * scaleX;
+      state.view.y = dragging.vy + (event.clientY - dragging.y) * scaleY;
+      applyView();
+    });
+    function endDrag() {
+      dragging = null;
+      svgRoot.classList.remove('dragging');
+    }
+    svgRoot.addEventListener('pointerup', endDrag);
+    svgRoot.addEventListener('pointercancel', endDrag);
+    svgRoot.addEventListener('pointerleave', function () {
+      if (dragging) {
+        endDrag();
+      }
+    });
+    svgRoot.addEventListener('click', function (event) {
+      if (event.target === svgRoot && state.selection.kind !== 'none') {
+        state.selection = { kind: 'none' };
+        applySelection();
+        renderDetails();
+        renderTree();
+      }
+    });
+
+    byId('tree').addEventListener('keydown', treeKeydown);
+    window.addEventListener('resize', function () {
+      var size = svgSize();
+      svgRoot.setAttribute('viewBox', '0 0 ' + size.width + ' ' + size.height);
+    });
+  }
+
+  function treeKeydown(event) {
+    var row = event.target && event.target.closest ? event.target.closest('.trow') : null;
+    if (!row) {
+      return;
+    }
+    var rows = Array.prototype.slice.call(byId('tree').querySelectorAll('.trow'));
+    var index = rows.indexOf(row);
+    var item = treeItems[row.dataset.key];
+    if (!item || index === -1) {
+      return;
+    }
+    var move = function (next) {
+      if (next >= 0 && next < rows.length) {
+        event.preventDefault();
+        state.focusKey = rows[next].dataset.key;
+        focusKey(state.focusKey);
+      }
+    };
+    switch (event.key) {
+      case 'ArrowDown':
+        move(index + 1);
+        break;
+      case 'ArrowUp':
+        move(index - 1);
+        break;
+      case 'Home':
+        move(0);
+        break;
+      case 'End':
+        move(rows.length - 1);
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        if (item.expandable && !item.open) {
+          item.open = true;
+          state.focusKey = item.key;
+          renderTree();
+          focusKey(item.key);
+        } else if (item.children.length) {
+          state.focusKey = item.children[0].key;
+          focusKey(state.focusKey);
+        }
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        if (item.expandable && item.open) {
+          item.open = false;
+          state.focusKey = item.key;
+          renderTree();
+          focusKey(item.key);
+        } else if (item.parentKey) {
+          state.focusKey = item.parentKey;
+          focusKey(state.focusKey);
+        }
+        break;
+      case 'Enter':
+      case ' ':
+      case 'Spacebar':
+        event.preventDefault();
+        activateItem(item);
+        break;
+      default:
+        break;
+    }
+  }
+
+  function showFatal(message) {
+    var bar = byId('statusbar');
+    bar.textContent = '';
+    var span = make('span', null, message);
+    bar.appendChild(span);
+    byId('details').textContent = '';
+    byId('details').appendChild(make('div', 'banner', message));
+  }
+
+  function init() {
+    svgRoot = byId('graph');
+    viewport = svgMake('g', { id: 'viewport' });
+    edgeLayer = svgMake('g', { id: 'edges' });
+    nodeLayer = svgMake('g', { id: 'nodes' });
+    viewport.appendChild(edgeLayer);
+    viewport.appendChild(nodeLayer);
+    svgRoot.appendChild(viewport);
+
+    var loaded = loadPayload();
+    if (!loaded.ok) {
+      showFatal(loaded.error);
+      return;
+    }
+    state.model = buildModel(loaded.data);
+    state.positions = computeLayout(state.model);
+    state.tree = buildTree(state.model);
+    populateAreas();
+    renderGraph();
+    renderTree();
+    renderDetails();
+    renderProblems();
+    renderStatus();
+    bindEvents();
+    fitView();
+  }
+
+  try {
+    init();
+  } catch (err) {
+    showFatal('The graph could not be initialised: ' + (err && err.message ? err.message : 'unknown error'));
+  }
+}());
+</script>
+</body>
+</html>

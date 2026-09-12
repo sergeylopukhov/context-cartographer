@@ -1,0 +1,62 @@
+{
+  "version": 2,
+  "topic": "Documentation delivery plan",
+  "status": "active",
+  "source_kind": "native",
+  "stage": "planned",
+  "authority": {
+    "mode": "implementation",
+    "scope": [
+      "documentation"
+    ],
+    "evidence": "The user approved the plan and asked to implement it."
+  },
+  "facts": [],
+  "desired_state": [
+    {
+      "id": "want_map",
+      "statement": "One documentation map owns every durable topic."
+    }
+  ],
+  "conflicts": [],
+  "decisions": [
+    {
+      "id": "docs_root",
+      "question": "Where do durable documents live?",
+      "status": "resolved",
+      "depends_on": [],
+      "conflicts": [],
+      "recommendation": "docs/",
+      "answer": "docs/",
+      "blocking": true,
+      "previous_answers": []
+    },
+    {
+      "id": "map_path",
+      "question": "Which file holds the documentation map?",
+      "status": "resolved",
+      "depends_on": [
+        "docs_root"
+      ],
+      "conflicts": [],
+      "recommendation": "docs/architecture.md",
+      "answer": "docs/architecture.md",
+      "blocking": true,
+      "previous_answers": []
+    },
+    {
+      "id": "rules_path",
+      "question": "Which file holds the documentation rules?",
+      "status": "resolved",
+      "depends_on": [
+        "map_path"
+      ],
+      "conflicts": [],
+      "recommendation": "docs/documentation-rules.md",
+      "answer": "docs/documentation-rules.md",
+      "blocking": true,
+      "previous_answers": []
+    }
+  ],
+  "out_of_scope": []
+}

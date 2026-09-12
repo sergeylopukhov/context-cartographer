@@ -5,6 +5,8 @@ Use this file to choose a minimal, profile-based documentation set and decide wh
 ## Contents
 
 - Minimal Core
+- Project Stages
+- Documentation Format And Scope
 - Profile-Based Files
 - Project Profiles
 - Monorepo Rule
@@ -20,11 +22,40 @@ Create or maintain these files when the project has durable documentation needs.
 
 - Root agent instruction file: short router for agent behavior and documentation routing. Use `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or multiple thin adapters for multi-agent projects.
 - `docs/architecture.md`: map of documentation files, reading rules, and architecture ownership.
+- `docs/documentation-rules.md`: the versioned, self-sufficient maintenance contract for creating, linking, and checking documentation. Root adapters route to it instead of repeating it.
 - `docs/architecture-overview.md`: stack, repository layout, runtime shape, important folders, and system boundaries.
 - `docs/architecture-quality-risks.md`: test commands, verification rules, known risks, fragile areas, and technical debt.
 - `docs/code_rules.md`: selected-core rules for code edits and code-adjacent changes; create only when the user explicitly chooses code-rules mode.
 
 Do not create a larger set until the project profile makes those files useful.
+
+## Project Stages
+
+The minimal core above is the set for a configured documentation system, not a quota for every stage. Match the set to the project's maturity and read `idea-to-project.md` for the idea route.
+
+- Idea or brief: when the user asks to save one, write a single brief; do not force the core set or a graph.
+- Implementation plan: keep requirements, boundaries, and acceptance criteria; mark future decisions as planned.
+- Working project: create the minimal core when it is genuinely needed, then add only profile-supported owners.
+- Feature of an existing project: update the existing owners; create a new owner only for a new durable topic.
+
+Once a project has a real documentation system, the rest of this map applies to its owners.
+
+## Documentation Format And Scope
+
+The editable documentation format is defined in [`documentation-format.md`](documentation-format.md). Read it before creating or changing `docs/architecture.md`, before choosing scope, topic IDs, owners, or explicit dependencies, and before implementing or using the documentation index, the graph commands, or the offline graph.
+
+It fixes, in one place:
+
+- the scope table of roots, includes, and exclusions;
+- the `Topic ID | Purpose | Owner | Read when` topic table;
+- the link types `routes_to`, `owns_topic`, `references`, and `depends_on`;
+- the explicit dependency table and its semantics;
+- relative address and anchor rules;
+- the `map_path` convention for a map outside `docs/` and the bootstrap scope used when a legacy map has no scope table;
+- the 0.2.0 compatibility rule that incomplete owner verification is never reported as a pass;
+- the shared index, report, and graph data shapes and the documentation index API.
+
+The Markdown files remain the source of truth. The scope table is the only editable scope definition; do not keep a second hand-maintained JSON copy of it.
 
 ## Profile-Based Files
 
@@ -70,6 +101,7 @@ Suggest these only when the project actually needs them:
 
 - Put architecture facts in the most specific `docs/architecture-*.md` file.
 - Put the routing map and reading rules in `docs/architecture.md`.
+- Put the documentation maintenance contract (owner rules, link rules, section reading, checks, privacy) in `docs/documentation-rules.md`; keep it versioned with its `format_version` marker.
 - Put product decisions in `docs/PRODUCT.md`, not architecture files.
 - Put visual and UX rules in `docs/DESIGN.md`, not product or frontend architecture unless they affect implementation.
 - Put deployment, release, publishing, and operational runbooks in `docs/DEPLOYMENT.md`.
@@ -77,6 +109,7 @@ Suggest these only when the project actually needs them:
 - Put operator workflows, support actions, admin panel usage, moderation, backoffice checks, and risky manual actions in `docs/ADMIN.md`.
 - Put code-editing behavior in `docs/code_rules.md` only when the user selects code-rules mode.
 - Ensure each selected root agent instruction file states the target agent, selected code-rules mode, and selected documentation maintenance mode.
+- Keep each root agent instruction file thin: real Markdown links to `docs/architecture.md` and `docs/documentation-rules.md`, one concrete maintenance mode, and no copy of the contract.
 - If code-rules mode is enabled, tell agents to read `docs/code_rules.md` before every code or code-adjacent edit. If declined, state that no dedicated code-rules file is used.
 - Do not infer code-rules mode from project type, existing docs, or "let the agent decide"; using `docs/code_rules.md` requires explicit user selection.
 - Do not infer documentation maintenance mode from project type, existing docs, or "let the agent decide"; automatic durable maintenance requires explicit user selection.
@@ -88,6 +121,7 @@ Suggest these only when the project actually needs them:
 ## Creation Rules
 
 - Create the smallest useful set first.
+- Create `docs/documentation-rules.md` with the core set and route to it from every root adapter.
 - Choose the root agent instruction target before creating or replacing root instructions: `AGENTS.md` for Codex, `CLAUDE.md` for Claude Code, `.cursor/rules/context-cartographer.mdc` for Cursor, or thin adapters for multiple selected agents. Ask when the target is ambiguous.
 - Ask for code-rules mode before creating root agent instructions unless the user already specified it. This is a blocking gate.
 - Include `docs/code_rules.md` in the minimal documentation core only when the user selects code-rules mode.
@@ -98,6 +132,7 @@ Suggest these only when the project actually needs them:
 - Do not create UI, design, product, deployment, or security files unless repo evidence or user intent supports them.
 - Do not create conditional files merely because they might be useful later.
 - Under automatic durable maintenance, if no existing owner file fits, create the smallest evidence-supported owner automatically, link it from `docs/architecture.md`, and do not ask merely because a new Markdown file is needed.
+- Keep topic `Owner` cells as real Markdown links, and list only scope roots that exist; the index resolves ownership and routes from parsed links.
 - If a file already exists, merge surgically instead of replacing it.
 - Do not move public repo docs or user-facing content into `docs/` automatically.
 
@@ -122,5 +157,6 @@ If `docs/` is already a public docs site, package documentation, or user-facing 
 ## Language Policy
 
 - Use English for project documentation by default.
+- This sets the documentation language only; replies follow the language of the user and the conversation, and a documentation-language choice never changes the reply language.
 - Preserve non-English text only when it is real UI copy, brand text, content examples, legal/user-facing copy, campaign keywords, or required domain terminology.
 - If the project language is unclear, ask before normalizing documentation language.
