@@ -283,26 +283,28 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 .node rect, .node .label, .node .sub { pointer-events: none; }
 .node { cursor: grab; }
 .node.dragging { cursor: grabbing; }
-.node rect.body { fill: var(--panel); stroke: var(--line-strong); stroke-width: 1; filter: drop-shadow(0 5px 9px rgba(24, 18, 35, 0.16)); }
-.node.topic rect.body { fill: var(--accent-soft); }
-.node .label { font-size: 12px; fill: var(--ink); font-weight: 600; }
-.node .sub { font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
+.node rect.body { fill: var(--accent); stroke: var(--panel); stroke-width: 2; }
+.node.topic rect.body { fill: var(--own); }
+.node .label { display: none; font-size: 12px; fill: var(--ink); font-weight: 600; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; stroke-linejoin: round; }
+.node .sub { display: none; font-size: 10.5px; fill: var(--muted); font-family: var(--mono); }
+.node.show-label .label, .node.selected .label, .node.related .label { display: block; }
 .node .badge circle { fill: var(--error); }
 .node .badge.info circle { fill: var(--info); }
 .node .badge text { fill: #fff; font-size: 10px; font-weight: 700; }
 .node.dim { opacity: 0.25; }
 .node.hidden { display: none; }
-.node.selected rect.body { stroke: var(--accent); stroke-width: 2.4; }
-.node.related rect.body { stroke: var(--accent); }
-.node:focus-visible rect.body { stroke: var(--accent); stroke-width: 2; }
-.edge { fill: none; stroke: var(--line-strong); stroke-width: 1.4; }
+.node.selected rect.body { fill: var(--panel); stroke: var(--accent); stroke-width: 4; }
+.node.related rect.body { stroke: var(--accent); stroke-width: 3; }
+.node:focus-visible rect.body { stroke: var(--accent); stroke-width: 4; }
+.edge { fill: none; stroke: var(--line-strong); stroke-width: 1; opacity: 0.45; }
 .edge.routes_to { stroke: var(--route); }
 .edge.owns_topic { stroke: var(--own); stroke-width: 2; }
 .edge.references { stroke: var(--ref); stroke-dasharray: 5 4; }
 .edge.depends_on { stroke: var(--dep); stroke-dasharray: 2 4; }
 .edge.dim { opacity: 0.2; }
 .edge.hidden { display: none; }
-.edge.related { stroke-width: 2.6; }
+.edge.related { stroke-width: 2.2; opacity: 1; }
+.cluster-label { fill: var(--muted); font-size: 13px; font-family: var(--mono); letter-spacing: 0.08em; text-transform: uppercase; pointer-events: none; }
 .empty-note { fill: var(--muted); font-size: 14px; }
 
 @media (max-width: 1080px) {
@@ -335,6 +337,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
   </span>
   <span class="checks">
     <label><input type="checkbox" id="problems-only"> problems only</label>
+    <label><input type="checkbox" id="show-connections"> all connections</label>
   </span>
   <span class="zoom" role="group" aria-label="Zoom and pan">
     <button type="button" class="icon-btn" id="layout-reset" title="Restore automatic layout" aria-label="Restore automatic layout">
@@ -596,6 +599,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     area: '',
     types: { routes_to: true, owns_topic: true, references: true, depends_on: true },
     problemsOnly: false,
+    showConnections: false,
     view: { scale: 1, x: 0, y: 0 },
     layoutKey: '',
     suppressNodeClick: false
@@ -603,6 +607,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
   var viewport = null;
   var edgeLayer = null;
+  var clusterLayer = null;
   var nodeLayer = null;
   var nodeElements = {};
   var edgeElements = [];
@@ -863,48 +868,67 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
   function computeLayout(model) {
     var positions = {};
-    var docW = 208;
-    var docH = 60;
-    var gapX = 28;
-    var gapY = 24;
-    var padX = 56;
-    var padY = 64;
-    var docs = model.documents.slice().sort(function (a, b) {
-      if (a.area !== b.area) { return a.area < b.area ? -1 : 1; }
-      if (a.path !== b.path) { return a.path < b.path ? -1 : 1; }
-      return 0;
+    var owners = {};
+    var areas = {};
+    model.documents.forEach(function (doc) {
+      owners[doc.path] = doc.area || 'project';
+      areas[owners[doc.path]] = true;
     });
-    var docCols = Math.max(1, Math.ceil(Math.sqrt(Math.max(docs.length, 1) * 1.8)));
-    var bottom = padY;
-    docs.forEach(function (doc, position) {
-      var col = position % docCols;
-      var row = Math.floor(position / docCols);
-      var x = padX + col * (docW + gapX);
-      var y = padY + row * (docH + gapY);
-      positions[doc.nodeId] = { x: x, y: y, w: docW, h: docH };
-      bottom = Math.max(bottom, y + docH);
+    var areaNames = Object.keys(areas).sort();
+    if (!areaNames.length) { areaNames = ['project']; }
+    var centers = {};
+    areaNames.forEach(function (area, index) {
+      var angle = Math.PI * 2 * index / areaNames.length - Math.PI / 2;
+      var radius = Math.max(260, areaNames.length * 88);
+      centers[area] = { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
     });
-
-    var topicW = 184;
-    var topicH = 50;
-    var tgapX = 24;
-    var tgapY = 20;
-    var bandTop = (docs.length ? bottom : padY) + 96;
-    var topics = model.topics.slice().sort(function (a, b) {
-      if (a.id !== b.id) { return a.id < b.id ? -1 : 1; }
-      return 0;
+    function hash(value) {
+      var result = 2166136261;
+      for (var i = 0; i < value.length; i += 1) { result = (result ^ value.charCodeAt(i)) * 16777619; }
+      return result >>> 0;
+    }
+    var items = [];
+    model.documents.concat(model.topics).forEach(function (entry) {
+      var id = entry.nodeId;
+      var area = entry.path ? (entry.area || 'project') : (owners[entry.ownerPath] || 'project');
+      var seed = hash(id);
+      var angle = (seed % 6283) / 1000;
+      var distance = 35 + (seed % 110);
+      var center = centers[area] || centers.project || { x: 0, y: 0 };
+      var size = entry.path ? 18 : 12;
+      positions[id] = { x: center.x + Math.cos(angle) * distance, y: center.y + Math.sin(angle) * distance, w: size, h: size, area: area, vx: 0, vy: 0 };
+      items.push(id);
     });
-    var topicCols = Math.max(1, Math.ceil(Math.sqrt(Math.max(topics.length, 1) * 1.8)));
-    topics.forEach(function (topic, position) {
-      var col = position % topicCols;
-      var row = Math.floor(position / topicCols);
-      positions[topic.nodeId] = {
-        x: padX + col * (topicW + tgapX),
-        y: bandTop + row * (topicH + tgapY),
-        w: topicW,
-        h: topicH
-      };
-    });
+    for (var tick = 0; tick < 220; tick += 1) {
+      items.forEach(function (id) { positions[id].vx = 0; positions[id].vy = 0; });
+      for (var first = 0; first < items.length; first += 1) {
+        for (var second = first + 1; second < items.length; second += 1) {
+          var a = positions[items[first]], b = positions[items[second]];
+          var dx = b.x - a.x, dy = b.y - a.y, distance2 = dx * dx + dy * dy + 0.01;
+          var distance = Math.sqrt(distance2), force = 2200 / distance2;
+          var ux = dx / distance, uy = dy / distance;
+          a.vx -= ux * force; a.vy -= uy * force; b.vx += ux * force; b.vy += uy * force;
+        }
+      }
+      model.edges.forEach(function (edge) {
+        var a = positions[edge.from], b = positions[edge.to];
+        if (!a || !b) { return; }
+        var dx = b.x - a.x, dy = b.y - a.y, distance = Math.sqrt(dx * dx + dy * dy) || 1;
+        var force = (distance - 110) * 0.012, ux = dx / distance, uy = dy / distance;
+        a.vx += ux * force; a.vy += uy * force; b.vx -= ux * force; b.vy -= uy * force;
+      });
+      items.forEach(function (id) {
+        var point = positions[id], center = centers[point.area] || { x: 0, y: 0 };
+        point.vx += (center.x - point.x) * 0.005;
+        point.vy += (center.y - point.y) * 0.005;
+        point.x += point.vx * 0.78;
+        point.y += point.vy * 0.78;
+      });
+    }
+    var minX = Infinity, minY = Infinity;
+    items.forEach(function (id) { minX = Math.min(minX, positions[id].x); minY = Math.min(minY, positions[id].y); });
+    items.forEach(function (id) { positions[id].x = Math.round(positions[id].x - minX + 90); positions[id].y = Math.round(positions[id].y - minY + 90); delete positions[id].vx; delete positions[id].vy; });
+    state.clusters = areaNames.map(function (area) { var center = centers[area]; return { name: area, x: Math.round(center.x - minX + 90), y: Math.round(center.y - minY + 90) }; });
     return positions;
   }
 
@@ -962,10 +986,10 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
   }
 
   function edgePath(a, b) {
-    var ax = a.x + a.w / 2;
-    var ay = a.y + a.h / 2;
-    var bx = b.x + b.w / 2;
-    var by = b.y + b.h / 2;
+    var ax = a.x;
+    var ay = a.y;
+    var bx = b.x;
+    var by = b.y;
     var dx = bx - ax;
     var dy = by - ay;
     var length = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -997,10 +1021,17 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
   function renderGraph() {
     var model = state.model;
+    while (clusterLayer.firstChild) { clusterLayer.removeChild(clusterLayer.firstChild); }
     while (edgeLayer.firstChild) { edgeLayer.removeChild(edgeLayer.firstChild); }
     while (nodeLayer.firstChild) { nodeLayer.removeChild(nodeLayer.firstChild); }
     nodeElements = {};
     edgeElements = [];
+
+    (state.clusters || []).forEach(function (cluster) {
+      var label = svgMake('text', { x: cluster.x, y: cluster.y, 'class': 'cluster-label', 'text-anchor': 'middle' });
+      label.textContent = cluster.name;
+      clusterLayer.appendChild(label);
+    });
 
     model.edges.forEach(function (edge, index) {
       var from = state.positions[edge.from];
@@ -1047,19 +1078,19 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     });
     group.appendChild(svgMake('rect', {
       'class': 'body',
-      x: place.x,
-      y: place.y,
+      x: place.x - place.w / 2,
+      y: place.y - place.h / 2,
       width: place.w,
       height: place.h,
-      rx: node.kind === 'topic' ? 12 : 6
+      rx: node.kind === 'topic' ? 2 : place.w / 2
     }));
 
-    var label = svgMake('text', { 'class': 'label', x: place.x + 10, y: place.y + 24 });
-    label.textContent = shorten(node.kind === 'doc' ? node.doc.title : node.label, node.kind === 'doc' ? 26 : 24);
+    var label = svgMake('text', { 'class': 'label', x: place.x + place.w / 2 + 8, y: place.y + 4 });
+    label.textContent = shorten(node.kind === 'doc' ? node.doc.title : node.label, 32);
     group.appendChild(label);
 
-    var sub = svgMake('text', { 'class': 'sub', x: place.x + 10, y: place.y + 42 });
-    sub.textContent = shorten(node.kind === 'doc' ? node.doc.path : node.sub, node.kind === 'doc' ? 32 : 28);
+    var sub = svgMake('text', { 'class': 'sub', x: place.x + place.w / 2 + 8, y: place.y + 20 });
+    sub.textContent = shorten(node.kind === 'doc' ? node.doc.path : node.sub, 32);
     group.appendChild(sub);
 
     var lines = [];
@@ -1082,8 +1113,8 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
     if (node.problemCount) {
       var badge = svgMake('g', { 'class': 'badge' + (hasError(node.id) ? '' : ' info') });
-      badge.appendChild(svgMake('circle', { cx: place.x + place.w - 14, cy: place.y + 14, r: 9 }));
-      var mark = svgMake('text', { x: place.x + place.w - 14, y: place.y + 18, 'text-anchor': 'middle' });
+      badge.appendChild(svgMake('circle', { cx: place.x + place.w / 2, cy: place.y - place.h / 2, r: 8 }));
+      var mark = svgMake('text', { x: place.x + place.w / 2, y: place.y - place.h / 2 + 4, 'text-anchor': 'middle' });
       mark.textContent = hasError(node.id) ? '!' : 'i';
       badge.appendChild(mark);
       group.appendChild(badge);
@@ -1126,10 +1157,19 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       element.classList.toggle('dim', visible && !nodeMatches(node));
     });
     edgeElements.forEach(function (entry) {
-      var visible = state.types[entry.edge.type] &&
+      var touchesSelection = state.selection.nodeId && (entry.edge.from === state.selection.nodeId || entry.edge.to === state.selection.nodeId);
+      var visible = state.types[entry.edge.type] && (state.showConnections || touchesSelection) &&
         !nodeElements[entry.edge.from].classList.contains('hidden') &&
         !nodeElements[entry.edge.to].classList.contains('hidden');
       entry.element.classList.toggle('hidden', !visible);
+    });
+    applyLabelDetail();
+  }
+
+  function applyLabelDetail() {
+    Object.keys(nodeElements).forEach(function (id) {
+      var node = state.model.nodes[id];
+      nodeElements[id].classList.toggle('show-label', state.view.scale >= 0.72 || (state.query && nodeMatches(node)));
     });
   }
 
@@ -1151,6 +1191,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     Object.keys(nodeElements).forEach(function (id) {
       nodeElements[id].classList.toggle('related', id !== activeId && related[id] === true);
     });
+    applyLabelDetail();
   }
 
   function applyView() {
@@ -1224,8 +1265,8 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       return;
     }
     var size = svgSize();
-    state.view.x = size.width / 2 - (place.x + place.w / 2) * state.view.scale;
-    state.view.y = size.height / 2 - (place.y + place.h / 2) * state.view.scale;
+    state.view.x = size.width / 2 - place.x * state.view.scale;
+    state.view.y = size.height / 2 - place.y * state.view.scale;
     applyView();
   }
 
@@ -1238,6 +1279,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     state.view.y = point.y - ratio * (point.y - state.view.y);
     state.view.scale = scale;
     applyView();
+    applyLabelDetail();
   }
 
   function buildTree(model) {
@@ -1504,6 +1546,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       return;
     }
     state.selection = { kind: state.model.nodes[nodeId].kind, nodeId: nodeId };
+    applyGraphFilters();
     applySelection();
     renderDetails();
     renderTree();
@@ -1511,6 +1554,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
 
   function selectSection(doc, heading) {
     state.selection = { kind: 'section', nodeId: doc.nodeId, doc: doc, heading: heading };
+    applyGraphFilters();
     applySelection();
     renderDetails();
     renderTree();
@@ -2156,6 +2200,10 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       applyGraphFilters();
       renderTree();
     });
+    byId('show-connections').addEventListener('change', function (event) {
+      state.showConnections = Boolean(event.target.checked);
+      applyGraphFilters();
+    });
     byId('zoom-in').addEventListener('click', function () { zoomBy(1.2); });
     byId('zoom-out').addEventListener('click', function () { zoomBy(1 / 1.2); });
     byId('zoom-fit').addEventListener('click', fitView);
@@ -2179,6 +2227,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
       state.view.y = point.y - ratio * (point.y - state.view.y);
       state.view.scale = scale;
       applyView();
+      applyLabelDetail();
     }, { passive: false });
 
     svgRoot.addEventListener('pointerdown', function (event) {
@@ -2241,6 +2290,7 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
     svgRoot.addEventListener('click', function (event) {
       if (event.target === svgRoot && state.selection.kind !== 'none') {
         state.selection = { kind: 'none' };
+        applyGraphFilters();
         applySelection();
         renderDetails();
         renderTree();
@@ -2332,8 +2382,10 @@ ul.plain li { margin: 3px 0; display: flex; gap: 6px; align-items: baseline; }
   function init() {
     svgRoot = byId('graph');
     viewport = svgMake('g', { id: 'viewport' });
+    clusterLayer = svgMake('g', { id: 'clusters' });
     edgeLayer = svgMake('g', { id: 'edges' });
     nodeLayer = svgMake('g', { id: 'nodes' });
+    viewport.appendChild(clusterLayer);
     viewport.appendChild(edgeLayer);
     viewport.appendChild(nodeLayer);
     svgRoot.appendChild(viewport);
